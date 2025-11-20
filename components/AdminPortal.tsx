@@ -268,7 +268,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
           <p className="text-gray-400 mt-1 text-sm md:text-base">Manage students, risk, and aggregated data.</p>
         </div>
         
-        <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 md:pb-0">
+        <div className="flex flex-wrap gap-2 pb-2 md:pb-0 min-h-[40px] bg-gray-900/50 p-2 rounded-lg border border-gray-700">
           {[
             { id: 'overview', label: 'Command Center', icon: LayoutDashboard },
             { id: 'directory', label: 'Directory', icon: Users },
@@ -286,7 +286,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
                         : 'text-gray-400 hover:text-white hover:bg-gray-800'
                     }`}
                 >
-                    <Icon className="h-4 w-4" /> {tab.label}
+                    <Icon className="h-4 w-4" /> 
+                    <span className={activeTab === tab.id ? "underline decoration-trade-neon decoration-2 underline-offset-4" : ""}>
+                      {tab.label}
+                    </span>
                 </button>
              );
           })}
