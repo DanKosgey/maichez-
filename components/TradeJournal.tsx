@@ -121,10 +121,10 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ entries, onAddEntry, draftE
   const processedEntries = useMemo(() => {
     // 1. Filter
     const filtered = entries.filter(entry => {
-      const matchesSearch = entry.pair.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            entry.notes.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = filterType === 'all' || entry.type === filterType;
-      const matchesOutcome = filterOutcome === 'all' || entry.status === filterOutcome;
+      const matchesSearch = (entry.pair && entry.pair.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                            (entry.notes && entry.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesType = filterType === 'all' || (entry.type && entry.type === filterType);
+      const matchesOutcome = filterOutcome === 'all' || (entry.status && entry.status === filterOutcome);
       return matchesSearch && matchesType && matchesOutcome;
     });
 

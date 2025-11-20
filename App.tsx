@@ -334,9 +334,9 @@ function App() {
       if (user.role === 'admin') {
         switch (portalView) {
           case 'admin-dashboard':
-            return <AdminPortal students={MOCK_STUDENTS} courses={courses} initialTab="overview" />;
+            return <AdminPortal courses={courses} initialTab="overview" />;
           case 'admin-students':
-            return <AdminPortal students={MOCK_STUDENTS} courses={courses} initialTab="directory" />;
+            return <AdminPortal courses={courses} initialTab="directory" />;
           case 'admin-rules':
             return (
               <RuleBuilder

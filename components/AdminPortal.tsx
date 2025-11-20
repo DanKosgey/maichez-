@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentProfile, CourseModule } from '../types';
 import { 
   Users, TrendingUp, AlertTriangle, Search, Eye, ShieldAlert, 
@@ -10,24 +10,39 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
   PieChart, Pie, AreaChart, Area, CartesianGrid, Legend
 } from 'recharts';
+import { 
+  fetchAllStudents, 
+  fetchAllTrades, 
+  fetchBusinessMetrics, 
+  fetchStudentWithTrades,
+  fetchComprehensiveAnalytics,
+  fetchRevenueGrowthData,
+  fetchCourseCompletionData,
+  fetchRuleViolationsData
+} from '../services/adminService';
 
 interface AdminPortalProps {
-  students: StudentProfile[];
   courses: CourseModule[];
   initialTab?: 'overview' | 'trades' | 'analytics' | 'directory';
 }
 
-const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab = 'overview' }) => {
+const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overview' }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'trades' | 'analytics' | 'directory'>(initialTab);
   const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
   
-  // Sync initialTab prop changes
-  useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
-
+  // Data state
+  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   // --- Overview State ---
-  // (Removed studentSearch from here, moving dedicated search to Directory)
+  const [classStats, setClassStats] = useState({
+    totalPnL: 0,
+    avgWinRate: 0,
+    atRiskCount: 0,
+    totalVolume: 0,
+    pnlData: [] as { name: string; pnl: number; color: string }[]
+  });
 
   // --- Student Directory State ---
   const [directorySearch, setDirectorySearch] = useState('');
@@ -38,62 +53,154 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
   const [journalSearch, setJournalSearch] = useState('');
   const [filterPair, setFilterPair] = useState('all');
   const [filterOutcome, setFilterOutcome] = useState('all');
+  const [allTrades, setAllTrades] = useState<any[]>([]);
+  const [filteredTrades, setFilteredTrades] = useState<any[]>([]);
+  const [uniquePairs, setUniquePairs] = useState<string[]>([]);
 
-  // --- Aggregate Analytics (Overview) ---
-  const classStats = useMemo(() => {
+  // --- Business Analytics ---
+  const [businessMetrics, setBusinessMetrics] = useState({
+    mrr: 0,
+    totalRevenue: 0,
+    churnRate: 0,
+    tierData: [] as { name: string; value: number; color: string }[],
+    revenueGrowthData: [] as { month: string; revenue: number }[],
+    courseCompletionData: [] as { name: string; completion: number }[],
+    violationData: [] as { rule: string; count: number }[]
+  });
+
+  // Sync initialTab prop changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  // Fetch data when component mounts or tab changes
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      console.log('Fetching data for AdminPortal...');
+      
+      try {
+        // Fetch all students
+        console.log('Fetching all students...');
+        const studentData = await fetchAllStudents();
+        console.log('Students data:', studentData);
+        setStudents(studentData);
+        
+        // Fetch all trades
+        console.log('Fetching all trades...');
+        const tradeData = await fetchAllTrades();
+        console.log('Trades data:', tradeData);
+        setAllTrades(tradeData);
+        
+        // Fetch business metrics
+        console.log('Fetching business metrics...');
+        const metrics = await fetchBusinessMetrics();
+        console.log('Business metrics:', metrics);
+        
+        // Fetch analytics data
+        console.log('Fetching analytics data...');
+        const revenueGrowthData = await fetchRevenueGrowthData();
+        console.log('Revenue growth data:', revenueGrowthData);
+        
+        const courseCompletionData = await fetchCourseCompletionData();
+        console.log('Course completion data:', courseCompletionData);
+        
+        const violationData = await fetchRuleViolationsData();
+        console.log('Violation data:', violationData);
+        
+        const processedMetrics = {
+          ...metrics,
+          revenueGrowthData: revenueGrowthData && revenueGrowthData.length > 0 
+            ? revenueGrowthData 
+            : [
+                { month: 'Jan 2023', revenue: 0 },
+                { month: 'Feb 2023', revenue: 0 },
+                { month: 'Mar 2023', revenue: 0 },
+                { month: 'Apr 2023', revenue: 0 },
+                { month: 'May 2023', revenue: 0 },
+                { month: 'Jun 2023', revenue: 0 }
+              ],
+          courseCompletionData: courseCompletionData && courseCompletionData.length > 0
+            ? courseCompletionData.map(item => ({
+                name: item.name && item.name.length > 20 ? item.name.substring(0, 20) + '...' : (item.name || 'Unknown Module'),
+                completion: item.completion || 0
+              }))
+            : [
+                { name: 'No data available', completion: 0 }
+              ],
+          violationData: violationData && violationData.length > 0
+            ? violationData.map(item => ({
+                rule: item.rule || 'Unknown Rule',
+                count: item.count || 0
+              }))
+            : [
+                { rule: 'No violations recorded', count: 0 }
+              ]
+        };
+        
+        console.log('Processed business metrics:', processedMetrics);
+        setBusinessMetrics(processedMetrics);
+      } catch (err: any) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Update class stats when students change
+  useEffect(() => {
     const totalPnL = students.reduce((acc, s) => acc + s.stats.totalPnL, 0);
-    const avgWinRate = Math.round(students.reduce((acc, s) => acc + s.stats.winRate, 0) / students.length) || 0;
+    const avgWinRate = Math.round(students.reduce((acc, s) => acc + s.stats.winRate, 0) / (students.length || 1)) || 0;
     const atRiskCount = students.filter(s => s.status === 'at-risk').length;
     const totalVolume = students.reduce((acc, s) => acc + s.stats.tradesCount, 0);
 
     // Chart Data: P&L Distribution
     const pnlData = students.map(s => ({
-      name: s.name.split(' ')[0],
+      name: s.name ? s.name.split(' ')[0] : 'Unknown',
       pnl: s.stats.totalPnL,
       color: s.stats.totalPnL >= 0 ? '#10b981' : '#ef4444'
     })).sort((a, b) => b.pnl - a.pnl);
 
-    return { totalPnL, avgWinRate, atRiskCount, totalVolume, pnlData };
+    setClassStats({ totalPnL, avgWinRate, atRiskCount, totalVolume, pnlData });
   }, [students]);
 
-  // --- Filtered Students for Directory ---
-  const filteredDirectoryStudents = useMemo(() => {
-    return students.filter(s => {
-        const matchesSearch = s.name.toLowerCase().includes(directorySearch.toLowerCase()) || 
-                             s.email.toLowerCase().includes(directorySearch.toLowerCase());
-        const matchesFilter = directoryFilter === 'all' || s.status === directoryFilter;
-        return matchesSearch && matchesFilter;
-    });
-  }, [students, directorySearch, directoryFilter]);
+  // Update filtered students for directory
+  const filteredDirectoryStudents = students.filter(s => {
+    const matchesSearch = (s.name && s.name.toLowerCase().includes(directorySearch.toLowerCase())) || 
+                         (s.email && s.email.toLowerCase().includes(directorySearch.toLowerCase()));
+    const matchesFilter = directoryFilter === 'all' || s.status === directoryFilter;
+    return matchesSearch && matchesFilter;
+  });
 
-  // --- Aggregate Analytics (Trade Journal) ---
-  const allTrades = useMemo(() => {
-    return students.flatMap(s => s.recentTrades.map(t => ({
-      ...t,
-      studentId: s.id,
-      studentName: s.name,
-      studentTier: s.tier,
-      studentAvatar: s.name.charAt(0)
-    })));
-  }, [students]);
-
-  const uniquePairs = useMemo(() => Array.from(new Set(allTrades.map(t => t.pair))), [allTrades]);
-
-  const filteredTrades = useMemo(() => {
-    return allTrades.filter(t => {
+  // Update unique pairs and filtered trades when trades change
+  useEffect(() => {
+    // Get unique pairs
+    const pairs = Array.from(new Set(allTrades.map(t => t.pair)));
+    setUniquePairs(pairs);
+    
+    // Filter trades
+    const filtered = allTrades.filter(t => {
       const matchesSearch = 
-        t.pair.toLowerCase().includes(journalSearch.toLowerCase()) ||
-        t.studentName.toLowerCase().includes(journalSearch.toLowerCase()) ||
+        (t.pair && t.pair.toLowerCase().includes(journalSearch.toLowerCase())) ||
+        (t.studentName && t.studentName.toLowerCase().includes(journalSearch.toLowerCase())) ||
         (t.notes && t.notes.toLowerCase().includes(journalSearch.toLowerCase()));
       
-      const matchesPair = filterPair === 'all' || t.pair === filterPair;
-      const matchesOutcome = filterOutcome === 'all' || t.status === filterOutcome;
+      const matchesPair = filterPair === 'all' || (t.pair && t.pair === filterPair);
+      const matchesOutcome = filterOutcome === 'all' || (t.status && t.status === filterOutcome);
 
       return matchesSearch && matchesPair && matchesOutcome;
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    setFilteredTrades(filtered);
   }, [allTrades, journalSearch, filterPair, filterOutcome]);
 
-  const tradeAnalytics = useMemo(() => {
+  // Calculate trade analytics
+  const tradeAnalytics = (() => {
     const total = filteredTrades.length;
     const wins = filteredTrades.filter(t => t.status === 'win').length;
     const losses = filteredTrades.filter(t => t.status === 'loss').length;
@@ -110,51 +217,44 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
       .sort((a, b) => b.value - a.value);
 
     return { total, wins, losses, winRate, netPnL, pairData };
-  }, [filteredTrades]);
+  })();
 
-  // --- Business Analytics ---
-  const businessMetrics = useMemo(() => {
-    const PRICES = { foundation: 47, professional: 97, elite: 297 };
-    let mrr = 0;
-    const tierCounts = { foundation: 0, professional: 0, elite: 0 };
-
-    students.forEach(s => {
-      if (s.tier) {
-        tierCounts[s.tier]++;
-        mrr += PRICES[s.tier] || 0;
+  // Handle student selection with detailed data
+  const handleStudentSelect = async (student: StudentProfile) => {
+    try {
+      const detailedStudent = await fetchStudentWithTrades(student.id);
+      if (detailedStudent) {
+        setSelectedStudent(detailedStudent);
+      } else {
+        setSelectedStudent(student);
       }
-    });
+    } catch (err) {
+      console.error('Error fetching student details:', err);
+      setSelectedStudent(student);
+    }
+  };
 
-    const totalRevenue = mrr * 12;
-    const churnRate = 4.2;
-    const tierData = [
-      { name: 'Foundation', value: tierCounts.foundation, color: '#94a3b8' },
-      { name: 'Professional', value: tierCounts.professional, color: '#00ff94' },
-      { name: 'Elite', value: tierCounts.elite, color: '#a855f7' },
-    ];
-    const revenueGrowthData = [
-      { month: 'May', revenue: mrr * 0.6 },
-      { month: 'Jun', revenue: mrr * 0.72 },
-      { month: 'Jul', revenue: mrr * 0.85 },
-      { month: 'Aug', revenue: mrr * 0.92 },
-      { month: 'Sep', revenue: mrr * 0.98 },
-      { month: 'Oct', revenue: mrr },
-    ];
-    const courseCompletionData = courses.map(c => ({
-        name: c.title.length > 20 ? c.title.substring(0, 20) + '...' : c.title,
-        completion: Math.floor(Math.random() * (95 - 40 + 1) + 40)
-    }));
-    const violationData = [
-        { rule: 'Trading Against Trend', count: 142 },
-        { rule: 'No FVG Identified', count: 98 },
-        { rule: 'Risk > 2% Account', count: 87 },
-        { rule: 'Early Entry (No Close)', count: 65 },
-        { rule: 'Trading News Event', count: 45 },
-    ];
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-trade-neon"></div>
+      </div>
+    );
+  }
 
-    return { mrr, totalRevenue, churnRate, tierData, revenueGrowthData, courseCompletionData, violationData };
-  }, [students, courses]);
-
+  if (error) {
+    return (
+      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-6 text-center">
+        <p className="text-red-200">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 md:space-y-8 text-white pb-10">
@@ -276,7 +376,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                   <div key={student.id} onClick={() => setSelectedStudent(student)} className="p-3 bg-red-900/10 border border-red-500/30 rounded-lg cursor-pointer hover:bg-red-900/20 transition">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-red-200">{student.name}</h4>
+                        <h4 className="font-bold text-red-200">{student.name || 'Unknown Student'}</h4>
                         <p className="text-xs text-red-400/70">High Drawdown Detected</p>
                       </div>
                       <span className="text-xs font-mono font-bold text-red-400">
@@ -366,10 +466,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                                       student.tier === 'elite' ? 'bg-purple-600 text-white' :
                                       'bg-trade-accent/20 text-trade-accent'
                                   }`}>
-                                      {student.name.charAt(0)}
+                                      {student.name ? student.name.charAt(0) : '?'}
                                   </div>
                                   <div>
-                                      <h4 className="font-bold text-white">{student.name}</h4>
+                                      <h4 className="font-bold text-white">{student.name || 'Unknown Student'}</h4>
                                       <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold ${
                                           student.tier === 'elite' ? 'bg-purple-500/20 text-purple-400' : 
                                           student.tier === 'professional' ? 'bg-trade-neon/10 text-trade-neon' : 'bg-gray-700 text-gray-400'
@@ -424,10 +524,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                                         student.tier === 'elite' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-300'
                                     }`}>
-                                        {student.name.charAt(0)}
+                                        {student.name ? student.name.charAt(0) : '?'}
                                     </div>
                                     <div>
-                                        <div>{student.name}</div>
+                                        <div>{student.name || 'Unknown Student'}</div>
                                         <div className="text-xs text-gray-500 font-normal">{student.email}</div>
                                     </div>
                                 </td>
@@ -636,7 +736,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                    <Activity className="h-4 w-4 text-trade-neon" /> Monthly Recurring Rev
                  </div>
                  <div className="text-3xl font-bold text-white">
-                   ${businessMetrics.mrr.toLocaleString()}
+                   ${businessMetrics.mrr ? businessMetrics.mrr.toLocaleString() : '0'}
                  </div>
                  <div className="text-xs text-green-400 mt-1 flex items-center gap-1">
                    <TrendingUp className="h-3 w-3" /> +12% vs last month
@@ -648,7 +748,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                    <Users className="h-4 w-4" /> Active Subscribers
                  </div>
                  <div className="text-3xl font-bold text-white">
-                   {students.length}
+                   {students ? students.length : 0}
                  </div>
               </div>
 
@@ -657,7 +757,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                    <CreditCard className="h-4 w-4" /> Lifetime Revenue
                  </div>
                  <div className="text-3xl font-bold text-white">
-                   ${(businessMetrics.totalRevenue).toLocaleString()}
+                   ${(businessMetrics.totalRevenue ? businessMetrics.totalRevenue : 0).toLocaleString()}
                  </div>
                  <div className="text-xs text-gray-500 mt-1">Projected EOY</div>
               </div>
@@ -667,7 +767,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                    <ArrowDownRight className="h-4 w-4 text-red-500" /> Churn Rate
                  </div>
                  <div className="text-3xl font-bold text-red-400">
-                   {businessMetrics.churnRate}%
+                   {businessMetrics.churnRate ? businessMetrics.churnRate : 0}%
                  </div>
                  <div className="text-xs text-gray-500 mt-1">Industry Avg: 5.5%</div>
               </div>
@@ -678,50 +778,62 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
               <div className="lg:col-span-2 bg-trade-dark p-6 rounded-xl border border-gray-700">
                  <h3 className="font-bold text-lg mb-6">Revenue Trajectory</h3>
                  <div className="h-64" style={{minHeight: '200px'}}>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                        <AreaChart data={businessMetrics.revenueGrowthData}>
-                            <defs>
-                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#00ff94" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="#00ff94" stopOpacity={0}/>
-                                </linearGradient>
-                            </defs>
-                            <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                            <YAxis stroke="#64748b" fontSize={12} />
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
-                            />
-                            <Area type="monotone" dataKey="revenue" stroke="#00ff94" fillOpacity={1} fill="url(#colorRevenue)" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                    {businessMetrics.revenueGrowthData && businessMetrics.revenueGrowthData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                          <AreaChart data={businessMetrics.revenueGrowthData}>
+                              <defs>
+                                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="5%" stopColor="#00ff94" stopOpacity={0.3}/>
+                                      <stop offset="95%" stopColor="#00ff94" stopOpacity={0}/>
+                                  </linearGradient>
+                              </defs>
+                              <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
+                              <YAxis stroke="#64748b" fontSize={12} />
+                              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                              <Tooltip 
+                                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                              />
+                              <Area type="monotone" dataKey="revenue" stroke="#00ff94" fillOpacity={1} fill="url(#colorRevenue)" />
+                          </AreaChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        No revenue data available
+                      </div>
+                    )}
                  </div>
               </div>
 
               <div className="bg-trade-dark p-6 rounded-xl border border-gray-700">
                  <h3 className="font-bold text-lg mb-6">Student Tiers</h3>
                  <div className="h-64" style={{minHeight: '200px'}}>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                        <PieChart>
-                            <Pie
-                                data={businessMetrics.tierData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {businessMetrics.tierData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                ))}
-                            </Pie>
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
-                            />
-                            <Legend verticalAlign="bottom" height={36} />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {businessMetrics.tierData && businessMetrics.tierData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                          <PieChart>
+                              <Pie
+                                  data={businessMetrics.tierData}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={60}
+                                  outerRadius={80}
+                                  paddingAngle={5}
+                                  dataKey="value"
+                              >
+                                  {businessMetrics.tierData.map((entry, index) => (
+                                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                                  ))}
+                              </Pie>
+                              <Tooltip 
+                                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                              />
+                              <Legend verticalAlign="bottom" height={36} />
+                          </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        No tier data available
+                      </div>
+                    )}
                  </div>
               </div>
            </div>
@@ -730,17 +842,23 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
               <div className="bg-trade-dark p-6 rounded-xl border border-gray-700">
                  <h3 className="font-bold text-lg mb-6">Course Completion Rate</h3>
                  <div className="h-64" style={{minHeight: '200px'}}>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                        <BarChart layout="vertical" data={businessMetrics.courseCompletionData}>
-                            <XAxis type="number" stroke="#64748b" fontSize={12} />
-                            <YAxis dataKey="name" type="category" width={120} stroke="#64748b" fontSize={11} />
-                            <Tooltip 
-                                cursor={{fill: '#1e293b'}}
-                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
-                            />
-                            <Bar dataKey="completion" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} name="% Completed" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {businessMetrics.courseCompletionData && businessMetrics.courseCompletionData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                          <BarChart layout="vertical" data={businessMetrics.courseCompletionData}>
+                              <XAxis type="number" stroke="#64748b" fontSize={12} />
+                              <YAxis dataKey="name" type="category" width={120} stroke="#64748b" fontSize={11} />
+                              <Tooltip 
+                                  cursor={{fill: '#1e293b'}}
+                                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                              />
+                              <Bar dataKey="completion" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} name="% Completed" />
+                          </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        No course data available
+                      </div>
+                    )}
                  </div>
               </div>
 
@@ -749,17 +867,23 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                     <ShieldAlert className="h-5 w-5 text-red-400" /> Top AI Rule Violations
                  </h3>
                  <div className="h-64" style={{minHeight: '200px'}}>
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                        <BarChart data={businessMetrics.violationData}>
-                            <XAxis dataKey="rule" stroke="#64748b" fontSize={10} tickMargin={10} />
-                            <YAxis stroke="#64748b" fontSize={12} />
-                            <Tooltip 
-                                cursor={{fill: '#1e293b'}}
-                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
-                            />
-                            <Bar dataKey="count" fill="#ef4444" radius={[4, 4, 0, 0]} name="Violations Detected" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {businessMetrics.violationData && businessMetrics.violationData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                          <BarChart data={businessMetrics.violationData}>
+                              <XAxis dataKey="rule" stroke="#64748b" fontSize={10} tickMargin={10} />
+                              <YAxis stroke="#64748b" fontSize={12} />
+                              <Tooltip 
+                                  cursor={{fill: '#1e293b'}}
+                                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                              />
+                              <Bar dataKey="count" fill="#ef4444" radius={[4, 4, 0, 0]} name="Violations Detected" />
+                          </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        No violation data available
+                      </div>
+                    )}
                  </div>
               </div>
            </div>
@@ -777,7 +901,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ students, courses, initialTab
                 <div className="p-6 border-b border-gray-700 flex justify-between items-start bg-gray-800">
                     <div className="flex items-center gap-4">
                          <div className="h-12 w-12 bg-gradient-to-br from-trade-accent to-blue-700 rounded-full flex items-center justify-center text-xl font-bold text-white">
-                            {selectedStudent.name.charAt(0)}
+                            {selectedStudent.name ? selectedStudent.name.charAt(0) : '?'}
                          </div>
                          <div>
                             <h2 className="text-2xl font-bold text-white">{selectedStudent.name}</h2>
