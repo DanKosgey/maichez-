@@ -1,56 +1,61 @@
-
 import React, { useState } from 'react';
-import { Lock, TrendingUp, ArrowRight, ShieldCheck, User } from 'lucide-react';
-import { User as UserType } from '../types';
+import { Lock, TrendingUp, ArrowRight, Mail, AlertCircle } from 'lucide-react';
+import { supabase } from '../supabase/client';
 
 interface LoginPageProps {
-  onLogin: (user: UserType) => void;
   onBack: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isLogin, setIsLogin] = useState(true);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
+    setError('');
+    setSuccessMessage('');
 
-    // Simulate API Call
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      if (!email || !password) {
-        setError('Please enter credentials');
-        return;
-      }
-
-      // MOCK AUTHENTICATION LOGIC
-      if (email.toLowerCase().includes('admin')) {
-        // Login as Admin (Alex)
-        onLogin({
-          id: 'admin-1',
-          name: 'Alex Mbauni',
-          email: 'alex@mbauniprotocol.com',
-          role: 'admin',
-          subscriptionTier: 'elite',
-          progress: 100
+    try {
+      if (isLogin) {
+        // --- LOGIN LOGIC ---
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
+
+        if (authError) throw authError;
+        // App.tsx listener will handle the rest (redirect, profile fetch)
       } else {
-        // Login as Student (Dan)
-        onLogin({
-          id: 'student-1',
-          name: 'Dan',
-          email: email,
-          role: 'student',
-          subscriptionTier: 'professional', // Defaulting to Pro for demo
-          progress: 35
+        // --- SIGNUP LOGIC ---
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+            },
+          },
         });
+
+        if (authError) throw authError;
+
+        if (authData.user) {
+          setSuccessMessage('Account created! Please check your email to verify your account.');
+          setIsLogin(true); // Switch to login view
+        }
       }
-    }, 1500);
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      setError(err.message || 'Authentication failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,21 +71,40 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack }) => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-800 mb-6 border border-gray-700">
             <TrendingUp className="h-8 w-8 text-trade-neon" />
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight mb-2">Welcome Back</h1>
+          <h1 className="text-3xl font-black text-white tracking-tight mb-2">
+            {isLogin ? 'Welcome Back' : 'Create Account'}
+          </h1>
           <p className="text-gray-400">Access the Mbauni Protocol Terminal</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleAuth} className="space-y-5">
+          {!isLogin && (
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Full Name</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-black/50 border border-gray-700 rounded-xl py-4 px-4 text-white focus:border-trade-neon focus:ring-1 focus:ring-trade-neon outline-none transition"
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-              <input 
-                type="email" 
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+              <input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-black/50 border border-gray-700 rounded-xl py-4 pl-12 pr-4 text-white focus:border-trade-neon focus:ring-1 focus:ring-trade-neon outline-none transition"
                 placeholder="name@example.com"
+                required
               />
             </div>
           </div>
@@ -89,53 +113,57 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack }) => {
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-black/50 border border-gray-700 rounded-xl py-4 pl-12 pr-4 text-white focus:border-trade-neon focus:ring-1 focus:ring-trade-neon outline-none transition"
                 placeholder="••••••••"
+                required
               />
             </div>
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+            <div className="text-red-500 text-sm font-medium text-center bg-red-500/10 py-3 rounded-lg border border-red-500/20 flex items-center justify-center gap-2">
+              <AlertCircle className="h-4 w-4" />
               {error}
             </div>
           )}
 
-          <button 
+          {successMessage && (
+            <div className="text-green-500 text-sm font-medium text-center bg-green-500/10 py-3 rounded-lg border border-green-500/20">
+              {successMessage}
+            </div>
+          )}
+
+          <button
             type="submit"
             disabled={isLoading}
             className="w-full bg-trade-neon hover:bg-green-400 text-black font-black py-4 rounded-xl text-lg transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-trade-neon/20"
           >
             {isLoading ? (
-              <span className="animate-pulse">Authenticating...</span>
+              <span className="animate-pulse">Processing...</span>
             ) : (
-              <>Login to Portal <ArrowRight className="h-5 w-5" /></>
+              <>
+                {isLogin ? 'Login to Portal' : 'Create Account'}
+                <ArrowRight className="h-5 w-5" />
+              </>
             )}
           </button>
         </form>
 
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-gray-400 hover:text-white text-sm font-medium transition"
+          >
+            {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Login'}
+          </button>
+        </div>
+
         <div className="mt-8 pt-6 border-t border-gray-800">
-          <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
-            <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">
-              <ShieldCheck className="h-3 w-3" /> Demo Credentials
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center p-2 bg-black/30 rounded cursor-pointer hover:bg-black/50 transition" onClick={() => {setEmail('admin@mbauni.com'); setPassword('admin123');}}>
-                <span className="text-white font-mono">admin@mbauni.com</span>
-                <span className="text-purple-400 text-xs font-bold px-2 py-0.5 bg-purple-500/10 rounded border border-purple-500/20">ADMIN</span>
-              </div>
-              <div className="flex justify-between items-center p-2 bg-black/30 rounded cursor-pointer hover:bg-black/50 transition" onClick={() => {setEmail('dan@student.com'); setPassword('student123');}}>
-                <span className="text-white font-mono">dan@student.com</span>
-                <span className="text-trade-neon text-xs font-bold px-2 py-0.5 bg-trade-neon/10 rounded border border-trade-neon/20">STUDENT</span>
-              </div>
-            </div>
-          </div>
-          
-          <button onClick={onBack} className="w-full mt-4 text-gray-500 text-sm hover:text-white transition">
+          <button onClick={onBack} className="w-full text-gray-500 text-sm hover:text-white transition">
             &larr; Back to Website
           </button>
         </div>

@@ -1,7 +1,13 @@
 import React from 'react';
-import { Youtube, Twitter, Instagram, MessageCircle, Shield, Zap, Users, ArrowRight } from 'lucide-react';
+import { Youtube, Twitter, Instagram, MessageCircle, Shield, Zap, Users, ArrowRight, Lock, Send, Phone } from 'lucide-react';
 
-const CommunityHub: React.FC = () => {
+interface CommunityHubProps {
+  subscriptionTier?: 'foundation' | 'professional' | 'elite' | 'elite-pending' | null;
+}
+
+const CommunityHub: React.FC<CommunityHubProps> = ({ subscriptionTier }) => {
+  const hasPremiumAccess = subscriptionTier === 'professional' || subscriptionTier === 'elite';
+
   return (
     <div className="text-white pb-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Hero Banner */}
@@ -9,7 +15,7 @@ const CommunityHub: React.FC = () => {
         {/* Decorative Background */}
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-trade-neon/10 rounded-full blur-[100px]"></div>
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-purple-600/10 rounded-full blur-[100px]"></div>
-        
+
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-trade-neon/10 border border-trade-neon/20 text-trade-neon text-xs font-bold mb-4">
             <Users className="h-3 w-3" /> GLOBAL COMMUNITY
@@ -27,6 +33,80 @@ const CommunityHub: React.FC = () => {
             <button className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold flex items-center gap-2 transition border border-gray-700">
               Explore Events
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Premium Groups Section */}
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-2xl font-bold">Premium Access Groups</h2>
+          {!hasPremiumAccess && (
+            <span className="px-2 py-0.5 bg-gray-800 text-gray-400 text-xs font-bold rounded border border-gray-700 flex items-center gap-1">
+              <Lock className="h-3 w-3" /> LOCKED
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Telegram */}
+          <div className={`relative group p-8 rounded-2xl border transition-all duration-300 ${hasPremiumAccess
+              ? 'bg-[#229ED9]/5 border-[#229ED9]/20 hover:bg-[#229ED9]/10 cursor-pointer'
+              : 'bg-gray-900/50 border-gray-800 opacity-75'
+            }`}>
+            {!hasPremiumAccess && (
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center rounded-2xl text-center p-6">
+                <Lock className="h-8 w-8 text-gray-500 mb-2" />
+                <p className="text-white font-bold">Professional Tier Required</p>
+                <p className="text-sm text-gray-400 mt-1">Upgrade to access the private signal channel.</p>
+              </div>
+            )}
+
+            <div className="flex justify-between items-start mb-6">
+              <div className="p-4 bg-[#229ED9] rounded-xl text-white shadow-lg shadow-[#229ED9]/20">
+                <Send className="h-8 w-8" />
+              </div>
+              {hasPremiumAccess && (
+                <ArrowRight className="h-6 w-6 text-[#229ED9] opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0" />
+              )}
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">Telegram Signals</h3>
+            <p className="text-gray-400 mb-6">
+              Direct feed of high-probability setups, market structure shifts, and institutional order flow alerts.
+            </p>
+            <div className={`inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider ${hasPremiumAccess ? 'text-[#229ED9]' : 'text-gray-600'}`}>
+              {hasPremiumAccess ? 'Join Channel' : 'Locked'}
+            </div>
+          </div>
+
+          {/* WhatsApp */}
+          <div className={`relative group p-8 rounded-2xl border transition-all duration-300 ${hasPremiumAccess
+              ? 'bg-[#25D366]/5 border-[#25D366]/20 hover:bg-[#25D366]/10 cursor-pointer'
+              : 'bg-gray-900/50 border-gray-800 opacity-75'
+            }`}>
+            {!hasPremiumAccess && (
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center rounded-2xl text-center p-6">
+                <Lock className="h-8 w-8 text-gray-500 mb-2" />
+                <p className="text-white font-bold">Professional Tier Required</p>
+                <p className="text-sm text-gray-400 mt-1">Upgrade to access the inner circle chat.</p>
+              </div>
+            )}
+
+            <div className="flex justify-between items-start mb-6">
+              <div className="p-4 bg-[#25D366] rounded-xl text-white shadow-lg shadow-[#25D366]/20">
+                <Phone className="h-8 w-8" />
+              </div>
+              {hasPremiumAccess && (
+                <ArrowRight className="h-6 w-6 text-[#25D366] opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0" />
+              )}
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">WhatsApp Inner Circle</h3>
+            <p className="text-gray-400 mb-6">
+              Exclusive group for networking with funded traders. Share charts, discuss psychology, and grow together.
+            </p>
+            <div className={`inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider ${hasPremiumAccess ? 'text-[#25D366]' : 'text-gray-600'}`}>
+              {hasPremiumAccess ? 'Join Group' : 'Locked'}
+            </div>
           </div>
         </div>
       </div>

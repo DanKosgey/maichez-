@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
@@ -12,8 +11,9 @@ import CourseBuilder from './components/CourseBuilder';
 import EliteApplicationForm from './components/EliteApplicationForm';
 import QuizPlayer from './components/QuizPlayer';
 import CommunityHub from './components/CommunityHub';
-import { User, CourseModule, TradeRule, TradeEntry, MentorshipApplication, StudentProfile } from './types';
-import { Lock, Settings, GraduationCap, BarChart, Bot, PlayCircle, CheckSquare, FileText, ArrowRight } from 'lucide-react';
+import { User, UserRole, CourseModule, TradeRule, TradeEntry, MentorshipApplication, StudentProfile } from './types';
+import { Lock, Settings, GraduationCap, BarChart, Bot, PlayCircle, CheckSquare, FileText, ArrowRight, ShieldAlert } from 'lucide-react';
+import { supabase } from './supabase/client';
 
 // --- MOCK DATA ---
 
@@ -70,7 +70,7 @@ const MOCK_RULES: TradeRule[] = [
 
 const MOCK_COURSES: CourseModule[] = [
   { id: '1', title: 'Market Structure & CRT', description: 'Understanding the foundation.', duration: '45m', level: 'beginner', completed: true, locked: false, contentType: 'video', content: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-  { 
+  {
     id: '2', title: 'Fair Value Gaps Mastery', description: 'Identifying high probability gaps.', duration: '60m', level: 'intermediate', completed: false, locked: false, contentType: 'text', content: '## Fair Value Gaps\n\nAn FVG is a 3-candle pattern...',
     quiz: {
       id: 'q2',
@@ -87,20 +87,20 @@ const MOCK_COURSES: CourseModule[] = [
 ];
 
 const INITIAL_ENTRIES: TradeEntry[] = [
-  { 
-    id: '101', pair: 'EURUSD', type: 'buy', entryPrice: 1.0850, stopLoss: 1.0820, takeProfit: 1.0910, 
+  {
+    id: '101', pair: 'EURUSD', type: 'buy', entryPrice: 1.0850, stopLoss: 1.0820, takeProfit: 1.0910,
     status: 'win', pnl: 320, validationResult: 'approved', notes: 'Clean CRT setup off 1H FVG.', date: '2025-10-10', emotions: ['Confident']
   },
-  { 
-    id: '102', pair: 'GBPUSD', type: 'sell', entryPrice: 1.2100, stopLoss: 1.2130, takeProfit: 1.2040, 
+  {
+    id: '102', pair: 'GBPUSD', type: 'sell', entryPrice: 1.2100, stopLoss: 1.2130, takeProfit: 1.2040,
     status: 'loss', pnl: -150, validationResult: 'warning', notes: 'Entered too early, missed the sweep.', date: '2025-10-12', emotions: ['FOMO', 'Anxious']
   },
-  { 
-    id: '103', pair: 'NAS100', type: 'buy', entryPrice: 14500, stopLoss: 14450, takeProfit: 14650, 
+  {
+    id: '103', pair: 'NAS100', type: 'buy', entryPrice: 14500, stopLoss: 14450, takeProfit: 14650,
     status: 'win', pnl: 450, validationResult: 'approved', notes: 'News play, waited for displacement.', date: '2025-10-14', emotions: ['Disciplined']
   },
-  { 
-    id: '105', pair: 'US30', type: 'buy', entryPrice: 33000, stopLoss: 32900, takeProfit: 33200, 
+  {
+    id: '105', pair: 'US30', type: 'buy', entryPrice: 33000, stopLoss: 32900, takeProfit: 33200,
     status: 'win', pnl: 600, validationResult: 'approved', notes: 'Perfect retest of order block.', date: '2025-10-18', emotions: ['Flow']
   }
 ];
@@ -109,7 +109,7 @@ const MOCK_USER_ELITE_PENDING: User = {
   id: '2',
   name: 'Pending Applicant',
   email: 'applicant@test.com',
-  role: 'student', 
+  role: 'student',
   subscriptionTier: 'elite-pending',
   progress: 0
 };
@@ -132,13 +132,68 @@ function App() {
   const [tradeRules, setTradeRules] = useState<TradeRule[]>(MOCK_RULES);
   const [courses, setCourses] = useState<CourseModule[]>(MOCK_COURSES);
 
+  // --- SUPABASE AUTH ---
+  React.useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user.id, session.user.email!);
+        setViewState('portal');
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        fetchProfile(session.user.id, session.user.email!);
+        setViewState('portal');
+      } else {
+        setUser(null);
+        setViewState('landing');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string, email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setUser({
+          id: data.id,
+          name: data.full_name || email.split('@')[0],
+          email: email,
+          role: data.role as any,
+          subscriptionTier: data.subscription_tier as any,
+          progress: 0
+        });
+
+        // Set default view based on Role
+        if (data.role === 'admin') {
+          setPortalView('admin-dashboard');
+        } else {
+          setPortalView('dashboard');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
   // --- HANDLERS ---
 
-  const handleNavigationRequest = (tier: 'foundation' | 'professional' | 'elite') => {
+  const handleNavigationRequest = (tier: 'free' | 'foundation' | 'professional' | 'elite') => {
     if (tier === 'elite') {
       setViewState('application');
     } else {
-      // For Foundation/Pro, we send them to Login/Register logic
+      // For Free/Foundation/Pro, we send them to Login/Register logic
       // For this demo, we go straight to the login screen
       setViewState('login');
     }
@@ -147,7 +202,7 @@ function App() {
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
     setViewState('portal');
-    
+
     // Set default view based on Role
     if (loggedInUser.role === 'admin') {
       setPortalView('admin-dashboard');
@@ -156,7 +211,8 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setViewState('landing');
     setPortalView('dashboard');
@@ -196,7 +252,7 @@ function App() {
   const handleDeleteRule = (id: string) => {
     setTradeRules(prev => prev.filter(r => r.id !== id));
   };
-  
+
   const handleReorderRules = (newRules: TradeRule[]) => {
     setTradeRules(newRules);
   };
@@ -219,7 +275,7 @@ function App() {
     setLessonTab('content');
     setPortalView('lesson');
   };
-  
+
   const handleQuizCompletion = (moduleId: string, score: number, passed: boolean) => {
     if (passed) {
       handleUpdateCourse(moduleId, { completed: true });
@@ -235,18 +291,17 @@ function App() {
 
   if (viewState === 'application') {
     return (
-      <EliteApplicationForm 
-        onSubmit={handleApplicationSubmit} 
-        onCancel={() => setViewState('landing')} 
+      <EliteApplicationForm
+        onSubmit={handleApplicationSubmit}
+        onCancel={() => setViewState('landing')}
       />
     );
   }
 
   if (viewState === 'login') {
     return (
-      <LoginPage 
-        onLogin={handleLogin} 
-        onBack={() => setViewState('landing')} 
+      <LoginPage
+        onBack={() => setViewState('landing')}
       />
     );
   }
@@ -254,6 +309,27 @@ function App() {
   // Authenticated Portal View
   if (user) {
     const renderContent = () => {
+      // --- ACCESS CONTROL CHECK ---
+      if (user.role !== 'admin' && portalView.startsWith('admin-')) {
+        return (
+          <div className="flex flex-col items-center justify-center h-[60vh] text-center animate-in fade-in zoom-in duration-300">
+            <div className="bg-red-500/10 p-6 rounded-full mb-6 border border-red-500/20">
+              <ShieldAlert className="h-12 w-12 text-red-500" />
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-2">Unauthorized Access</h2>
+            <p className="text-gray-400 max-w-md mb-8">
+              You do not have permission to view this area. This incident has been logged.
+            </p>
+            <button
+              onClick={() => setPortalView('dashboard')}
+              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition border border-gray-700"
+            >
+              Return to Dashboard
+            </button>
+          </div>
+        );
+      }
+
       // --- ADMIN VIEWS ---
       if (user.role === 'admin') {
         switch (portalView) {
@@ -263,7 +339,7 @@ function App() {
             return <AdminPortal students={MOCK_STUDENTS} courses={courses} initialTab="directory" />;
           case 'admin-rules':
             return (
-              <RuleBuilder 
+              <RuleBuilder
                 rules={tradeRules}
                 onAdd={handleAddRule}
                 onUpdate={handleUpdateRule}
@@ -295,77 +371,77 @@ function App() {
       switch (portalView) {
         case 'dashboard':
           return (
-            <Dashboard 
-              user={user} 
-              courses={courses} 
+            <Dashboard
+              user={user}
+              courses={courses}
               trades={journalEntries}
-              onContinueCourse={() => setPortalView('courses')} 
+              onContinueCourse={() => setPortalView('courses')}
             />
           );
         case 'ai':
           // Access Control: Only Professional and Elite tiers can access AI
           const hasAccess = user.subscriptionTier === 'professional' || user.subscriptionTier === 'elite';
-          
+
           if (!hasAccess) {
             return (
               <div className="flex flex-col items-center justify-center h-[60vh] text-center max-w-lg mx-auto animate-in fade-in zoom-in duration-300">
                 <div className="bg-gray-800 p-6 rounded-full mb-6 relative">
-                   <Lock className="h-12 w-12 text-gray-500" />
-                   <div className="absolute -top-1 -right-1 bg-trade-neon/20 text-trade-neon text-xs font-bold px-2 py-1 rounded-full border border-trade-neon/50">PRO</div>
+                  <Lock className="h-12 w-12 text-gray-500" />
+                  <div className="absolute -top-1 -right-1 bg-trade-neon/20 text-trade-neon text-xs font-bold px-2 py-1 rounded-full border border-trade-neon/50">PRO</div>
                 </div>
-                
-                <h2 className="text-3xl font-bold text-white mb-4">Professional Feature</h2>
-                
-                {user.subscriptionTier === 'elite-pending' ? (
-                   <div className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-xl text-yellow-200 max-w-md">
-                      <p className="font-bold mb-2 text-lg">Application Under Review</p>
-                      <p className="text-sm opacity-80">
-                        Your application for the Elite Mentorship is currently being processed by our team. 
-                        Access to the AI Assistant will be unlocked upon approval.
-                      </p>
-                   </div>
-                ) : (
-                   <>
-                     <p className="text-gray-400 mb-8 text-lg leading-relaxed">
-                        The AI Trade Assistant is exclusively available to <span className="text-trade-neon font-bold">Professional</span> and <span className="text-purple-500 font-bold">Elite</span> members.
-                     </p>
-                     
-                     <div className="space-y-3 w-full max-w-sm text-left">
-                        <div className="p-4 bg-gray-900 rounded-xl border border-gray-800 flex gap-4 items-center">
-                             <div className="bg-trade-neon/10 p-2 rounded-lg text-trade-neon"><Bot className="h-5 w-5" /></div>
-                             <div>
-                                <div className="text-white font-bold text-sm">AI Trade Guard</div>
-                                <p className="text-xs text-gray-500">Real-time setup validation</p>
-                             </div>
-                        </div>
-                         <div className="p-4 bg-gray-900 rounded-xl border border-gray-800 flex gap-4 items-center">
-                             <div className="bg-purple-500/10 p-2 rounded-lg text-purple-400"><BarChart className="h-5 w-5" /></div>
-                             <div>
-                                <div className="text-white font-bold text-sm">Advanced Analytics</div>
-                                <p className="text-xs text-gray-500">Performance breakdown by pair</p>
-                             </div>
-                        </div>
-                     </div>
 
-                     <button className="mt-8 w-full max-w-sm py-4 bg-trade-neon text-black font-black text-lg rounded-xl hover:bg-green-400 transition shadow-lg shadow-trade-neon/20">
-                        Upgrade to Professional
-                     </button>
-                   </>
+                <h2 className="text-3xl font-bold text-white mb-4">Professional Feature</h2>
+
+                {user.subscriptionTier === 'elite-pending' ? (
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-xl text-yellow-200 max-w-md">
+                    <p className="font-bold mb-2 text-lg">Application Under Review</p>
+                    <p className="text-sm opacity-80">
+                      Your application for the Elite Mentorship is currently being processed by our team.
+                      Access to the AI Assistant will be unlocked upon approval.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-gray-400 mb-8 text-lg leading-relaxed">
+                      The AI Trade Assistant is exclusively available to <span className="text-trade-neon font-bold">Professional</span> and <span className="text-purple-500 font-bold">Elite</span> members.
+                    </p>
+
+                    <div className="space-y-3 w-full max-w-sm text-left">
+                      <div className="p-4 bg-gray-900 rounded-xl border border-gray-800 flex gap-4 items-center">
+                        <div className="bg-trade-neon/10 p-2 rounded-lg text-trade-neon"><Bot className="h-5 w-5" /></div>
+                        <div>
+                          <div className="text-white font-bold text-sm">AI Trade Guard</div>
+                          <p className="text-xs text-gray-500">Real-time setup validation</p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-gray-900 rounded-xl border border-gray-800 flex gap-4 items-center">
+                        <div className="bg-purple-500/10 p-2 rounded-lg text-purple-400"><BarChart className="h-5 w-5" /></div>
+                        <div>
+                          <div className="text-white font-bold text-sm">Advanced Analytics</div>
+                          <p className="text-xs text-gray-500">Performance breakdown by pair</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button className="mt-8 w-full max-w-sm py-4 bg-trade-neon text-black font-black text-lg rounded-xl hover:bg-green-400 transition shadow-lg shadow-trade-neon/20">
+                      Upgrade to Professional
+                    </button>
+                  </>
                 )}
               </div>
             );
           }
 
           return (
-            <AITradeAssistant 
-              userRules={tradeRules} 
+            <AITradeAssistant
+              userRules={tradeRules}
               onLogTrade={handleLogTradeFromAI}
             />
           );
         case 'journal':
           return (
-            <TradeJournal 
-              entries={journalEntries} 
+            <TradeJournal
+              entries={journalEntries}
               onAddEntry={handleAddJournalEntry}
               draftEntry={draftJournalEntry}
               onClearDraft={() => setDraftJournalEntry(null)}
@@ -387,26 +463,24 @@ function App() {
                   <div className="text-xs text-gray-500 uppercase">Modules Completed</div>
                 </div>
               </div>
-              
+
               {['beginner', 'intermediate', 'advanced'].map((level) => {
                 const levelCourses = courses.filter(c => c.level === level);
                 if (levelCourses.length === 0) return null;
 
                 return (
                   <div key={level} className="mb-8">
-                     <h3 className="text-xl font-bold capitalize mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
-                        <span className={`w-2 h-6 rounded-sm ${
-                           level === 'beginner' ? 'bg-green-500' :
-                           level === 'intermediate' ? 'bg-yellow-500' : 'bg-red-500'
+                    <h3 className="text-xl font-bold capitalize mb-4 border-b border-gray-800 pb-2 flex items-center gap-2">
+                      <span className={`w-2 h-6 rounded-sm ${level === 'beginner' ? 'bg-green-500' :
+                        level === 'intermediate' ? 'bg-yellow-500' : 'bg-red-500'
                         }`}></span>
-                        {level} Level
-                     </h3>
-                     <div className="space-y-4">
+                      {level} Level
+                    </h3>
+                    <div className="space-y-4">
                       {levelCourses.map(course => (
-                        <div key={course.id} className={`p-6 rounded-xl border transition-all ${
-                          course.locked 
-                            ? 'bg-gray-900/50 border-gray-800 opacity-75' 
-                            : 'bg-trade-dark border-gray-700 hover:border-trade-accent'
+                        <div key={course.id} className={`p-6 rounded-xl border transition-all ${course.locked
+                          ? 'bg-gray-900/50 border-gray-800 opacity-75'
+                          : 'bg-trade-dark border-gray-700 hover:border-trade-accent'
                           } flex flex-col md:flex-row justify-between items-center gap-4`}>
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
@@ -423,7 +497,7 @@ function App() {
                                 <Lock className="h-5 w-5" />
                               </button>
                             ) : (
-                              <button 
+                              <button
                                 onClick={() => handleStartLesson(course)}
                                 className="px-6 py-2 bg-trade-accent text-white rounded-lg hover:bg-blue-600 transition font-bold text-sm shadow-lg shadow-blue-900/20"
                               >
@@ -439,140 +513,138 @@ function App() {
               })}
             </div>
           );
-        
+
         case 'lesson':
           if (!activeLesson) return <div>Lesson not found</div>;
-          
+
           return (
             <div className="max-w-4xl mx-auto text-white pb-10">
-              <button 
+              <button
                 onClick={() => setPortalView('courses')}
                 className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition"
               >
-                 ← Back to Curriculum
+                ← Back to Curriculum
               </button>
 
               <div className="flex items-center gap-4 mb-6 border-b border-gray-800">
-                <button 
+                <button
                   onClick={() => setLessonTab('content')}
-                  className={`px-4 py-3 font-bold text-sm border-b-2 transition ${
-                    lessonTab === 'content' 
-                      ? 'border-trade-accent text-white' 
-                      : 'border-transparent text-gray-500 hover:text-gray-300'
-                  }`}
+                  className={`px-4 py-3 font-bold text-sm border-b-2 transition ${lessonTab === 'content'
+                    ? 'border-trade-accent text-white'
+                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                    }`}
                 >
-                   Lesson Content
+                  Lesson Content
                 </button>
                 {activeLesson.quiz && (
-                  <button 
+                  <button
                     onClick={() => setLessonTab('quiz')}
-                    className={`px-4 py-3 font-bold text-sm border-b-2 transition flex items-center gap-2 ${
-                      lessonTab === 'quiz' 
-                        ? 'border-trade-accent text-white' 
-                        : 'border-transparent text-gray-500 hover:text-gray-300'
-                    }`}
+                    className={`px-4 py-3 font-bold text-sm border-b-2 transition flex items-center gap-2 ${lessonTab === 'quiz'
+                      ? 'border-trade-accent text-white'
+                      : 'border-transparent text-gray-500 hover:text-gray-300'
+                      }`}
                   >
-                     <CheckSquare className="h-4 w-4" /> Quiz
+                    <CheckSquare className="h-4 w-4" /> Quiz
                   </button>
                 )}
               </div>
 
               <div className="bg-black border border-gray-800 rounded-2xl overflow-hidden shadow-2xl mb-8 min-h-[500px]">
-                 {lessonTab === 'content' ? (
-                    <>
+                {lessonTab === 'content' ? (
+                  <>
                     {activeLesson.contentType === 'video' ? (
-                        <div className="aspect-video bg-gray-900 flex items-center justify-center relative">
-                            {/* Mock Video Player UI */}
-                            <div className="absolute inset-0 flex items-center justify-center group">
-                                <PlayCircle className="h-20 w-20 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition duration-300 cursor-pointer" />
-                            </div>
-                            <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-4">
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <h2 className="font-bold text-lg">{activeLesson.title}</h2>
-                                    <p className="text-sm text-gray-300">Chapter 1: Fundamentals</p>
-                                </div>
-                                <span className="text-xs font-mono bg-black/50 px-2 py-1 rounded border border-white/10">
-                                    {activeLesson.duration}
-                                </span>
-                            </div>
-                            <div className="w-full h-1 bg-gray-700 mt-4 rounded-full overflow-hidden">
-                                <div className="w-1/3 h-full bg-trade-neon"></div>
-                            </div>
-                            </div>
+                      <div className="aspect-video bg-gray-900 flex items-center justify-center relative">
+                        {/* Mock Video Player UI */}
+                        <div className="absolute inset-0 flex items-center justify-center group">
+                          <PlayCircle className="h-20 w-20 text-white opacity-80 group-hover:opacity-100 group-hover:scale-110 transition duration-300 cursor-pointer" />
                         </div>
+                        <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-4">
+                          <div className="flex justify-between items-end">
+                            <div>
+                              <h2 className="font-bold text-lg">{activeLesson.title}</h2>
+                              <p className="text-sm text-gray-300">Chapter 1: Fundamentals</p>
+                            </div>
+                            <span className="text-xs font-mono bg-black/50 px-2 py-1 rounded border border-white/10">
+                              {activeLesson.duration}
+                            </span>
+                          </div>
+                          <div className="w-full h-1 bg-gray-700 mt-4 rounded-full overflow-hidden">
+                            <div className="w-1/3 h-full bg-trade-neon"></div>
+                          </div>
+                        </div>
+                      </div>
                     ) : (
-                        <div className="p-12 bg-trade-dark min-h-[400px]">
+                      <div className="p-12 bg-trade-dark min-h-[400px]">
                         <h2 className="text-3xl font-bold mb-8">{activeLesson.title}</h2>
                         <div className="prose prose-invert max-w-none">
-                            {/* Simple markdown-like rendering for demo */}
-                            {activeLesson.content?.split('\n').map((line, i) => {
-                                if (line.startsWith('# ')) return <h1 key={i} className="text-2xl font-bold mb-4 text-white">{line.substring(2)}</h1>;
-                                if (line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold mb-3 text-white mt-8">{line.substring(3)}</h2>;
-                                if (line.trim() === '') return <br key={i} />;
-                                return <p key={i} className="text-gray-300 leading-relaxed mb-4">{line}</p>;
-                            })}
-                            {!activeLesson.content && (
-                                <div className="text-center text-gray-500 py-10">
-                                <div className="mb-4">No text content available for this module.</div>
-                                </div>
-                            )}
+                          {/* Simple markdown-like rendering for demo */}
+                          {activeLesson.content?.split('\n').map((line, i) => {
+                            if (line.startsWith('# ')) return <h1 key={i} className="text-2xl font-bold mb-4 text-white">{line.substring(2)}</h1>;
+                            if (line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold mb-3 text-white mt-8">{line.substring(3)}</h2>;
+                            if (line.trim() === '') return <br key={i} />;
+                            return <p key={i} className="text-gray-300 leading-relaxed mb-4">{line}</p>;
+                          })}
+                          {!activeLesson.content && (
+                            <div className="text-center text-gray-500 py-10">
+                              <div className="mb-4">No text content available for this module.</div>
+                            </div>
+                          )}
                         </div>
-                        </div>
+                      </div>
                     )}
-                    </>
-                 ) : (
-                   <div className="p-8 bg-trade-dark h-full">
-                      {activeLesson.quiz ? (
-                        <QuizPlayer 
-                          quiz={activeLesson.quiz}
-                          onComplete={(score, passed) => handleQuizCompletion(activeLesson.id, score, passed)}
-                          onRetake={() => {}}
-                        />
-                      ) : (
-                        <div className="text-center p-12 text-gray-500">No quiz available for this module.</div>
-                      )}
-                   </div>
-                 )}
+                  </>
+                ) : (
+                  <div className="p-8 bg-trade-dark h-full">
+                    {activeLesson.quiz ? (
+                      <QuizPlayer
+                        quiz={activeLesson.quiz}
+                        onComplete={(score, passed) => handleQuizCompletion(activeLesson.id, score, passed)}
+                        onRetake={() => { }}
+                      />
+                    ) : (
+                      <div className="text-center p-12 text-gray-500">No quiz available for this module.</div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {lessonTab === 'content' && (
                 <div className="flex justify-between items-center bg-trade-dark p-6 rounded-xl border border-gray-800">
-                    <div>
-                        <h3 className="font-bold text-lg mb-1">Lesson Complete?</h3>
-                        <p className="text-sm text-gray-400">
-                            {activeLesson.quiz ? "Take the quiz to complete this module." : "Mark this module as finished to unlock the next chapter."}
-                        </p>
-                    </div>
-                    {activeLesson.quiz ? (
-                         <button 
-                           onClick={() => setLessonTab('quiz')}
-                           className="px-8 py-3 bg-trade-accent hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition flex items-center gap-2"
-                         >
-                            Proceed to Quiz <ArrowRight className="h-5 w-5" />
-                         </button>
-                    ) : (
-                        <button className="px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg shadow-green-900/20 transition flex items-center gap-2">
-                            Complete & Continue →
-                        </button>
-                    )}
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">Lesson Complete?</h3>
+                    <p className="text-sm text-gray-400">
+                      {activeLesson.quiz ? "Take the quiz to complete this module." : "Mark this module as finished to unlock the next chapter."}
+                    </p>
+                  </div>
+                  {activeLesson.quiz ? (
+                    <button
+                      onClick={() => setLessonTab('quiz')}
+                      className="px-8 py-3 bg-trade-accent hover:bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition flex items-center gap-2"
+                    >
+                      Proceed to Quiz <ArrowRight className="h-5 w-5" />
+                    </button>
+                  ) : (
+                    <button className="px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg shadow-green-900/20 transition flex items-center gap-2">
+                      Complete & Continue →
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           );
 
         case 'community':
-           return <CommunityHub />;
+          return <CommunityHub />;
         default:
           return <div>View Not Found</div>;
       }
     };
 
     return (
-      <Layout 
-        user={user} 
-        currentView={portalView} 
-        onChangeView={setPortalView} 
+      <Layout
+        user={user}
+        currentView={portalView}
+        onChangeView={setPortalView}
         onLogout={handleLogout}
       >
         {renderContent()}

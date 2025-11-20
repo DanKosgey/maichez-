@@ -6,7 +6,7 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
-  subscriptionTier: 'foundation' | 'professional' | 'elite' | 'elite-pending' | null;
+  subscriptionTier: 'free' | 'foundation' | 'professional' | 'elite' | 'elite-pending' | null;
   progress: number;
 }
 
@@ -84,7 +84,7 @@ export interface StudentProfile {
   id: string;
   name: string;
   email: string;
-  tier: 'foundation' | 'professional' | 'elite';
+  tier: 'free' | 'foundation' | 'professional' | 'elite';
   joinedDate: string;
   stats: {
     winRate: number;
