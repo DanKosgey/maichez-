@@ -4,14 +4,35 @@ import { supabase } from '../supabase/client';
 // Initialize Gemini
 // NOTE: In a real app, this would be imported from a secure config
 const getApiKey = () => {
+  // First try to get from Vite environment variables
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+    return import.meta.env.VITE_GEMINI_API_KEY;
+  }
+  
+  // Fallback to process.env for other environments
+  if (typeof process !== 'undefined' && process.env && process.env.VITE_GEMINI_API_KEY) {
+    return process.env.VITE_GEMINI_API_KEY;
+  }
+  
+  // Last resort - check if API_KEY is defined in any way
   if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
     return process.env.API_KEY;
   }
+  
   return '';
 };
 
 const API_KEY = getApiKey();
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+// Only initialize AI if we have an API key
+let ai: GoogleGenAI | null = null;
+if (API_KEY) {
+  try {
+    ai = new GoogleGenAI({ apiKey: API_KEY });
+  } catch (error) {
+    console.error('Failed to initialize Gemini AI:', error);
+  }
+}
 
 // Function to fetch user-specific rules from database
 const fetchUserRulesFromDB = async (userId: string): Promise<string[]> => {
@@ -36,10 +57,11 @@ export const validateTradeWithGemini = async (
   rules: string[],
   imageBase64?: string
 ): Promise<{ verdict: 'APPROVED' | 'WARNING' | 'REJECTED'; explanation: string }> => {
-  if (!API_KEY) {
+  // Check if AI is properly initialized
+  if (!ai || !API_KEY) {
     return { 
       verdict: 'WARNING', 
-      explanation: "Error: API Key not configured. Please set process.env.API_KEY." 
+      explanation: "AI service is not configured. Please set VITE_GEMINI_API_KEY in your .env file." 
     };
   }
 
@@ -64,6 +86,13 @@ export const validateTradeWithGemini = async (
       3. Give a final verdict: APPROVED, WARNING, or REJECTED.
       4. Explain why in a helpful, educational tone.
       5. Return your response in JSON format with "verdict" and "explanation" fields.
+      
+      When analyzing charts:
+      - Identify key support/resistance levels
+      - Look for liquidity grabs and structure breaks
+      - Check for FVGs and their mitigation status
+      - Assess risk-reward ratio based on chart context
+      - Evaluate entry timing relative to market structure
     `;
 
     const parts: any[] = [{ text: prompt }];
@@ -83,7 +112,7 @@ export const validateTradeWithGemini = async (
       model: modelId,
       contents: { parts },
       config: {
-        systemInstruction: "You are a strict but encouraging trading mentor. Be concise and focus on risk management. Return your response in JSON format with 'verdict' and 'explanation' fields."
+        systemInstruction: "You are a strict but encouraging trading mentor. Be concise and focus on risk management. Return your response in JSON format with 'verdict' and 'explanation' fields. Make your explanations educational and actionable."
       }
     });
 
@@ -129,7 +158,8 @@ export const analyzeTradePerformance = async (
   tradeHistory: any[],
   userId: string
 ): Promise<{ insights: string[]; suggestions: string[] }> => {
-  if (!API_KEY) {
+  // Check if AI is properly initialized
+  if (!ai || !API_KEY) {
     return { 
       insights: ["AI analysis unavailable: API Key not configured."],
       suggestions: ["Please contact support to enable AI features."]
@@ -201,7 +231,7 @@ export const analyzeTradePerformance = async (
     console.error("Gemini API Error:", error);
     return { 
       insights: ["I'm having trouble analyzing your trade performance right now."],
-      suggestions: ["Please try again later."]
+      suggestions: ["Please try again later."] 
     };
   }
 };

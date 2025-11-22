@@ -594,19 +594,16 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
 
   const handleUpdateNotificationPreferences = async (preferences: Partial<any>) => {
     try {
-      // Since there's no updatePreferences function, we'll skip this for now
-      // You can implement this function later if needed
-      console.log('Notification preferences update skipped - function not implemented');
-      // const success = await notificationService.updatePreferences(
-      //   currentUser.id, 
-      //   preferences
-      // );
-      // if (success && notificationPreferences) {
-      //   setNotificationPreferences({
-      //     ...notificationPreferences,
-      //     ...preferences
-      //   });
-      // }
+      const success = await notificationService.updatePreferences(
+        currentUser.id, 
+        preferences
+      );
+      if (success && notificationPreferences) {
+        setNotificationPreferences({
+          ...notificationPreferences,
+          ...preferences
+        });
+      }
     } catch (err) {
       console.error('Error updating notification preferences:', err);
     }

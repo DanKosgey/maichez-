@@ -226,3 +226,13 @@ export interface CommunityLink {
   createdAt: string;
   updatedAt: string;
 }
+
+// Todo interface for task management
+export interface Todo {
+  id: string;
+  userId: string;
+  title: string;
+  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}

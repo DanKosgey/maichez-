@@ -8,6 +8,12 @@ interface LandingPageProps {
   onSelectTier: (tier: 'free' | 'foundation' | 'professional' | 'elite') => void;
 }
 
+// Let's add a new interface for plan selection
+interface LandingPagePropsWithPlanSelection extends LandingPageProps {
+  onPlanSelection?: (planName: string) => void;
+}
+
+// We'll keep the original interface for compatibility
 const AnimatedCandles: React.FC<{ direction: 'bull' | 'bear' }> = ({ direction }) => {
   const candles = direction === 'bull'
     ? [30, 25, 40, 35, 55, 48, 70, 85, 110]
@@ -37,7 +43,7 @@ const AnimatedCandles: React.FC<{ direction: 'bull' | 'bear' }> = ({ direction }
   );
 };
 
-const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
+const LandingPage: React.FC<LandingPageProps & { onPlanSelection?: (planName: string) => void }> = ({ onSelectTier, onPlanSelection }) => {
   const [showBear, setShowBear] = useState(false);
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
@@ -165,7 +171,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onSelectTier('professional')}
+              onClick={() => {
+                // Login button should redirect to login page
+                // We need to determine the correct way to trigger login view
+                // For now, let's use a special tier value to indicate login
+                onSelectTier('login' as any);
+              }}
               className="bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-1.5 sm:px-6 sm:py-2 md:py-3 rounded-lg sm:rounded-xl font-bold backdrop-blur transition text-xs sm:text-sm md:text-base"
             >
               Login <ArrowRight className="inline h-3 w-3 sm:h-4 sm:w-4 ml-1" />
@@ -262,7 +273,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
 
               <motion.button
                 whileHover={{ scale: 1.05 }}
-                onClick={() => onSelectTier('professional')}
+                onClick={() => onSelectTier('elite')} // Redirect to application form
                 className="px-6 sm:px-8 md:px-10 py-4 sm:py-5 md:py-6 border-2 border-trade-neon/50 text-trade-neon font-bold text-base sm:text-lg rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-3 hover:bg-trade-neon/10 transition w-full sm:w-auto"
               >
                 <Play className="h-4 w-4 sm:h-6 sm:w-6" /> Watch Free Masterclass
@@ -328,7 +339,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
                   <span className="text-red-500 font-bold">❌ Red Light:</span> STOP. You are about to lose money.
                 </p>
                 <button
-                  onClick={() => onSelectTier('professional')}
+                  onClick={() => onSelectTier('elite')} // Redirect to application form
                   className="bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg hover:bg-gray-200 transition flex items-center gap-2"
                 >
                   Try AI Trade Guard <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -436,7 +447,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier }) => {
                       </ul>
                       
                       <button 
-                        onClick={() => onSelectTier(plan.id as any)}
+                        onClick={() => {
+                          // Use the new handler if available, otherwise fall back to the old one
+                          if (onPlanSelection && plan.name) {
+                            onPlanSelection(plan.name);
+                          } else {
+                            // For all plans, redirect to application form
+                            onSelectTier('elite');
+                          }
+                        }}
                         className={`w-full py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold transition text-sm sm:text-base ${
                           isPopular 
                             ? 'bg-trade-neon text-black hover:bg-green-400' 

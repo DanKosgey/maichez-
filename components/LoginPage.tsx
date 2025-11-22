@@ -9,11 +9,9 @@ interface LoginPageProps {
 const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,34 +20,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
     setSuccessMessage('');
 
     try {
-      if (isLogin) {
-        // --- LOGIN LOGIC ---
-        const { error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+      // --- LOGIN LOGIC ---
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (authError) throw authError;
-        // App.tsx listener will handle the rest (redirect, profile fetch)
-      } else {
-        // --- SIGNUP LOGIC ---
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: name,
-            },
-          },
-        });
-
-        if (authError) throw authError;
-
-        if (authData.user) {
-          setSuccessMessage('Account created! Please check your email to verify your account.');
-          setIsLogin(true); // Switch to login view
-        }
-      }
+      if (authError) throw authError;
+      // App.tsx listener will handle the rest (redirect, profile fetch)
     } catch (err: any) {
       console.error('Auth error:', err);
       setError(err.message || 'Authentication failed');
@@ -72,28 +50,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
             <TrendingUp className="h-8 w-8 text-trade-neon" />
           </div>
           <h1 className="text-3xl font-black text-white tracking-tight mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            Welcome Back
           </h1>
           <p className="text-gray-400">Access the Mbauni Protocol Terminal</p>
         </div>
 
         <form onSubmit={handleAuth} className="space-y-5">
-          {!isLogin && (
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Full Name</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-black/50 border border-gray-700 rounded-xl py-4 px-4 text-white focus:border-trade-neon focus:ring-1 focus:ring-trade-neon outline-none transition"
-                  placeholder="John Doe"
-                  required
-                />
-              </div>
-            </div>
-          )}
-
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
             <div className="relative">
@@ -146,21 +108,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
               <span className="animate-pulse">Processing...</span>
             ) : (
               <>
-                {isLogin ? 'Login to Portal' : 'Create Account'}
+                Login to Portal
                 <ArrowRight className="h-5 w-5" />
               </>
             )}
           </button>
         </form>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-gray-400 hover:text-white text-sm font-medium transition"
-          >
-            {isLogin ? 'Need an account? Sign Up' : 'Already have an account? Login'}
-          </button>
-        </div>
 
         <div className="mt-8 pt-6 border-t border-gray-800">
           <button onClick={onBack} className="w-full text-gray-500 text-sm hover:text-white transition">

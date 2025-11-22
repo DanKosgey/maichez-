@@ -123,6 +123,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
     
     setModuleFormData({ 
       ...module,
+      courseId: module.courseId || '', // Ensure courseId is never null
       content: module.content || '',
       order: module.order || 1,
       quiz: processedQuiz

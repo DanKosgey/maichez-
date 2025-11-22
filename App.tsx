@@ -14,6 +14,7 @@ import { ShieldAlert, Settings, Bot, BarChart, CheckSquare, PlayCircle, ArrowRig
 import TradeJournal from './components/TradeJournal';
 import CommunityHub from './components/CommunityHub';
 import QuizPlayer from './components/QuizPlayer';
+import TodoList from './components/TodoList';
 import { courseService } from './services/courseService';
 
 // --- MOCK DATA ---
@@ -104,6 +105,7 @@ type AppViewState = 'landing' | 'login' | 'portal' | 'application';
 function App() {
   // App Logic State
   const [viewState, setViewState] = useState<AppViewState>('landing');
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [portalView, setPortalView] = useState('dashboard'); // Internal view within layout
   const [activeLesson, setActiveLesson] = useState<CourseModule | null>(null);
@@ -214,14 +216,20 @@ function App() {
 
   // --- HANDLERS ---
 
-  const handleNavigationRequest = (tier: 'free' | 'foundation' | 'professional' | 'elite') => {
-    if (tier === 'elite') {
-      setViewState('application');
-    } else {
-      // For Free/Foundation/Pro, we send them to Login/Register logic
-      // For this demo, we go straight to the login screen
+  const handleNavigationRequest = (tier: 'free' | 'foundation' | 'professional' | 'elite' | 'login') => {
+    if (tier === 'login') {
+      // Redirect to login page
       setViewState('login');
+    } else {
+      // For all plans, redirect to application form
+      setSelectedPlan('Elite Mentorship');
+      setViewState('application');
     }
+  };
+
+  const handlePlanSelection = (planName: string) => {
+    setSelectedPlan(planName);
+    setViewState('application');
   };
 
   const handleLogin = (loggedInUser: User) => {
@@ -311,12 +319,16 @@ function App() {
   // --- RENDER LOGIC ---
 
   if (viewState === 'landing') {
-    return <LandingPage onSelectTier={handleNavigationRequest} />;
+    return <LandingPage 
+      onSelectTier={handleNavigationRequest} 
+      onPlanSelection={handlePlanSelection} 
+    />;
   }
 
   if (viewState === 'application') {
     return (
       <EliteApplicationForm
+        selectedPlan={selectedPlan}
         onSubmit={handleApplicationSubmit}
         onCancel={() => setViewState('landing')}
       />
@@ -428,7 +440,7 @@ function App() {
             return (
               <div className="flex flex-col items-center justify-center h-[60vh] text-center max-w-lg mx-auto animate-in fade-in zoom-in duration-300">
                 <div className="bg-gray-800 p-6 rounded-full mb-6 relative">
-                  <Lock className="h-12 w-12 text-gray-500" />
+                  <Lock className="h-12 w-12 mb-4 text-gray-500" />
                   <div className="absolute -top-1 -right-1 bg-trade-neon/20 text-trade-neon text-xs font-bold px-2 py-1 rounded-full border border-trade-neon/50">PRO</div>
                 </div>
 
@@ -476,7 +488,7 @@ function App() {
 
           return (
             <AITradeAssistant
-              userRules={tradeRules}
+              userId={user.id}
               onLogTrade={handleLogTradeFromAI}
             />
           );
@@ -490,6 +502,8 @@ function App() {
               onClearDraft={() => setDraftJournalEntry(null)}
             />
           );
+        case 'todos':
+          return <TodoList userId={user.id} />;
         case 'courses':
           // Map User to StudentProfile for CourseManagementSystem
           const studentProfile: StudentProfile = {

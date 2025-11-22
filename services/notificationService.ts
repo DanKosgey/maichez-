@@ -16,17 +16,33 @@ export const notificationService = {
   // Create a new notification
   async createNotification(notification: Omit<Notification, 'id' | 'createdAt'>): Promise<Notification | null> {
     try {
+      // Prepare the insert data
+      const insertData: any = {
+        profile_id: notification.userId,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        read: notification.read,
+        related_entity_id: notification.relatedEntityId,
+        related_entity_type: notification.relatedEntityType
+      };
+
+      // If we have a related entity ID and type, set the specific foreign key columns
+      if (notification.relatedEntityId && notification.relatedEntityType) {
+        // Only set the specific foreign key if the relatedEntityId is a valid UUID
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(notification.relatedEntityId)) {
+          if (notification.relatedEntityType === 'course') {
+            insertData.course_id = notification.relatedEntityId;
+          } else if (notification.relatedEntityType === 'module') {
+            insertData.module_id = notification.relatedEntityId;
+          }
+        }
+      }
+
       const { data, error } = await supabase
         .from('notifications')
-        .insert({
-          profile_id: notification.userId, // Changed from user_id to profile_id
-          title: notification.title,
-          message: notification.message,
-          type: notification.type,
-          read: notification.read,
-          related_entity_id: notification.relatedEntityId,
-          related_entity_type: notification.relatedEntityType
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -34,7 +50,7 @@ export const notificationService = {
 
       return {
         id: data.id,
-        userId: data.profile_id, // Changed from user_id to profile_id
+        userId: data.profile_id,
         title: data.title,
         message: data.message,
         type: data.type,
@@ -55,7 +71,7 @@ export const notificationService = {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('profile_id', userId) // Changed from user_id to profile_id
+        .eq('profile_id', userId)
         .eq('read', false)
         .order('created_at', { ascending: false });
 
@@ -63,7 +79,7 @@ export const notificationService = {
 
       return data.map(notification => ({
         id: notification.id,
-        userId: notification.profile_id, // Changed from user_id to profile_id
+        userId: notification.profile_id,
         title: notification.title,
         message: notification.message,
         type: notification.type,
@@ -84,14 +100,14 @@ export const notificationService = {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('profile_id', userId) // Changed from user_id to profile_id
+        .eq('profile_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       return data.map(notification => ({
         id: notification.id,
-        userId: notification.profile_id, // Changed from user_id to profile_id
+        userId: notification.profile_id,
         title: notification.title,
         message: notification.message,
         type: notification.type,
@@ -128,7 +144,7 @@ export const notificationService = {
       const { error } = await supabase
         .from('notifications')
         .update({ read: true })
-        .eq('profile_id', userId) // Changed from user_id to profile_id
+        .eq('profile_id', userId)
         .eq('read', false);
 
       if (error) throw error;
@@ -202,12 +218,33 @@ export const notificationService = {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
-          filter: `profile_id=eq.${userId}` // Changed from user_id to profile_id
+          filter: `profile_id=eq.${userId}`
         },
         callback
       )
       .subscribe();
 
     return channel;
+  },
+
+  // Update notification preferences
+  async updatePreferences(userId: string, preferences: Partial<any>): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          profile_id: userId,
+          ...preferences,
+          updated_at: new Date()
+        }, {
+          onConflict: 'profile_id'
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+      return false;
+    }
   }
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, GraduationCap, Bot, BookOpen, Users, LogOut, Settings, ShieldAlert, Menu, X, Layers, PieChart as PieIcon } from 'lucide-react';
+import { LayoutDashboard, GraduationCap, Bot, BookOpen, Users, LogOut, Settings, ShieldAlert, Menu, X, Layers, PieChart as PieIcon, CheckSquare } from 'lucide-react';
 import { User } from '../types';
 import NavigationButtons from './NavigationButtons';
 
@@ -42,6 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
       { id: 'courses', label: 'Courses', icon: GraduationCap },
       { id: 'ai', label: 'AI Assistant', icon: Bot, premium: true },
       { id: 'journal', label: 'Journal', icon: BookOpen },
+      { id: 'todos', label: 'Tasks', icon: CheckSquare },
       { id: 'community', label: 'Community', icon: Users },
     ];
   }

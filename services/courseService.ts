@@ -1,6 +1,15 @@
 import { Course, CourseModule, CourseCategory, CourseProgress, Enrollment } from '../types';
 import { supabase } from '../supabase/client';
 
+// Simple UUID v4 generator function
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Course Service
 export const courseService = {
   // Courses
@@ -197,8 +206,12 @@ export const courseService = {
 
   async createModule(module: Omit<CourseModule, 'id' | 'completed' | 'locked'>): Promise<CourseModule | null> {
     try {
+      // Generate a UUID for the module since the database column doesn't have a default
+      const moduleId = generateUUID();
+      
       // Prepare insert data with proper defaults
       const insertData: any = {
+        id: moduleId, // Include the generated ID
         title: module.title || 'Untitled Module',
         level: module.level || 'beginner',
         content_type: module.contentType || 'video'
@@ -210,6 +223,9 @@ export const courseService = {
       if (module.duration) insertData.duration = module.duration;
       if (module.content) insertData.content = module.content;
       if (module.order !== undefined) insertData.order_number = module.order;
+      
+      // Log the insert data for debugging
+      console.log('Inserting module with data:', insertData);
       
       const { data, error } = await supabase
         .from('course_modules')
