@@ -148,6 +148,22 @@ returns table(
 ) as $$
 begin
     return query
+    with churn_data as (
+        -- Count users who churned in the last 30 days
+        -- Churn is defined as moving from a paid tier to no tier
+        select count(*) as churned_users
+        from subscription_history
+        where change_date >= (current_date - interval '30 days')
+        and old_tier in ('foundation', 'professional', 'elite')
+        and (new_tier is null or new_tier = '')
+    ),
+    total_active_users as (
+        -- Count total active users
+        select count(*) as active_users
+        from profiles
+        where role = 'student'
+        and subscription_tier in ('foundation', 'professional', 'elite')
+    )
     select 
         -- Total revenue (simplified calculation)
         (sum(case 
@@ -163,13 +179,61 @@ begin
             when subscription_tier = 'elite' then 297
             else 0
         end)::numeric as mrr,
-        -- Churn rate (calculated based on subscription history or set to 0 if no history)
-        0::numeric as churn_rate,
+        -- Churn rate (calculated based on subscription history)
+        case 
+            when (select active_users from total_active_users) = 0 then 0::numeric
+            else round(
+                ((select churned_users from churn_data) * 100.0) / 
+                (select active_users from total_active_users), 
+                2
+            )
+        end as churn_rate,
         -- Tier counts
         count(*) filter (where subscription_tier = 'foundation')::numeric as foundation_count,
         count(*) filter (where subscription_tier = 'professional')::numeric as professional_count,
         count(*) filter (where subscription_tier = 'elite')::numeric as elite_count
     from profiles 
     where role = 'student';
+end;
+$$ language plpgsql;
+
+-- Create a function to calculate revenue growth percentage
+create or replace function calculate_revenue_growth_percentage()
+returns numeric as $$
+declare
+    current_mrr numeric;
+    previous_mrr numeric;
+    growth_percentage numeric;
+begin
+    -- Get current MRR
+    select sum(case 
+        when subscription_tier = 'foundation' then 47
+        when subscription_tier = 'professional' then 97
+        when subscription_tier = 'elite' then 297
+        else 0
+    end) into current_mrr
+    from profiles 
+    where role = 'student';
+    
+    -- Get MRR from 30 days ago (approximate)
+    select sum(case 
+        when sh.old_tier = 'foundation' then 47
+        when sh.old_tier = 'professional' then 97
+        when sh.old_tier = 'elite' then 297
+        else 0
+    end) into previous_mrr
+    from subscription_history sh
+    where sh.change_date >= (current_date - interval '60 days')
+    and sh.change_date <= (current_date - interval '30 days');
+    
+    -- If we don't have previous data, use a small default value to avoid division by zero
+    if previous_mrr is null or previous_mrr = 0 then
+        previous_mrr := 1;
+    end if;
+    
+    -- Calculate growth percentage
+    growth_percentage := round(((current_mrr - previous_mrr) / previous_mrr) * 100, 2);
+    
+    return growth_percentage;
 end;
 $$ language plpgsql;

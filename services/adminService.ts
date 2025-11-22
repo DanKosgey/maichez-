@@ -77,6 +77,10 @@ export const fetchBusinessMetrics = async () => {
         mrr: metrics.mrr || 0,
         totalRevenue: metrics.total_revenue || 0,
         churnRate: metrics.churn_rate || 0,
+        // Calculate growth percentage based on MRR and total revenue
+        growthPercentage: metrics.mrr > 0 && metrics.total_revenue > metrics.mrr 
+          ? Math.max(0, Math.min(100, Math.round((metrics.mrr / (metrics.total_revenue - metrics.mrr)) * 100))) 
+          : 0,
         tierData: [
           { name: 'Foundation', value: metrics.foundation_count || 0, color: '#94a3b8' },
           { name: 'Professional', value: metrics.professional_count || 0, color: '#00ff94' },
@@ -89,6 +93,7 @@ export const fetchBusinessMetrics = async () => {
       mrr: 0,
       totalRevenue: 0,
       churnRate: 0,
+      growthPercentage: 0,
       tierData: [
         { name: 'Foundation', value: 0, color: '#94a3b8' },
         { name: 'Professional', value: 0, color: '#00ff94' },

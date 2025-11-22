@@ -36,6 +36,7 @@ interface BusinessMetrics {
   mrr: number;
   totalRevenue: number;
   churnRate: number;
+  growthPercentage: number;
   tierData: { name: string; value: number; color: string }[];
   revenueGrowthData: { month: string; revenue: number }[];
   courseCompletionData: { name: string; completion: number }[];
@@ -287,7 +288,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
   const [allTrades, setAllTrades] = useState<Trade[]>([]);
   const [filteredTrades, setFilteredTrades] = useState<Trade[]>([]);
   const [uniquePairs, setUniquePairs] = useState<string[]>([]);
-  const [businessMetrics, setBusinessMetrics] = useState<BusinessMetrics>({ mrr: 0, totalRevenue: 0, churnRate: 0, tierData: [], revenueGrowthData: [], courseCompletionData: [], violationData: [] });
+  const [businessMetrics, setBusinessMetrics] = useState<BusinessMetrics>({ mrr: 0, totalRevenue: 0, churnRate: 0, growthPercentage: 0, tierData: [], revenueGrowthData: [], courseCompletionData: [], violationData: [] });
   const [communityLinks, setCommunityLinks] = useState<CommunityLink[]>([]);
   const [editingCommunityLink, setEditingCommunityLink] = useState<CommunityLink | null>(null);
   const [showCommunityLinkForm, setShowCommunityLinkForm] = useState(false);
@@ -316,8 +317,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
         setCommunityLinks(links || []);
         setPlans(plansData || []);
         setBusinessMetrics({
-          mrr: metrics?.mrr || 0, totalRevenue: metrics?.totalRevenue || 0, churnRate: metrics?.churnRate || 0, tierData: metrics?.tierData || [],
-          revenueGrowthData: revenueData?.length ? revenueData : [{month:'Jan',revenue:0},{month:'Feb',revenue:0},{month:'Mar',revenue:0}],
+          mrr: metrics?.mrr || 0, 
+          totalRevenue: metrics?.totalRevenue || 0, 
+          churnRate: metrics?.churnRate || 0, 
+          growthPercentage: metrics?.growthPercentage || 0, 
+          tierData: metrics?.tierData || [],
+          revenueGrowthData: revenueData?.length ? revenueData : [{month:'Jan',revenue:0},{month:'Feb',revenue:0}],
           courseCompletionData: courseEnrollment?.length ? courseEnrollment.map(i => ({ name: i.name?.slice(0,20) || 'Unknown', completion: i.count > 0 ? Math.round((i.completed/i.count)*100) : 0 })) : [{name:'No data',completion:0}],
           violationData: violations?.length ? violations.map(i => ({ rule: i.rule || 'Unknown', count: i.count || 0 })) : [{rule:'None',count:0}]
         });
@@ -546,8 +551,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
                 <Activity className="h-4 w-4 text-trade-neon" /> MRR
               </div>
               <div className="text-3xl font-bold text-white">${businessMetrics.mrr.toLocaleString()}</div>
-              <div className="text-xs text-green-400 mt-1 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> +{Math.max(0, Math.min(100, Math.round((businessMetrics.mrr / Math.max(1, businessMetrics.totalRevenue - businessMetrics.mrr)) * 100)))}%
+              <div className={`text-xs mt-1 flex items-center gap-1 ${businessMetrics.growthPercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <TrendingUp className="h-3 w-3" /> {businessMetrics.growthPercentage >= 0 ? '+' : ''}{businessMetrics.growthPercentage}%
               </div>
             </div>
             <div className="bg-trade-dark p-6 rounded-xl border border-gray-700">
