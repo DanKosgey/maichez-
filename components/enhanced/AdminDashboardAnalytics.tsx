@@ -221,8 +221,8 @@ const AdminDashboardAnalytics: React.FC<AdminDashboardAnalyticsProps> = ({
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5" /> Enrollment Trend
           </h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80" style={{minHeight: '200px'}}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={enrollmentTrendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="date" stroke="#9CA3AF" />
@@ -259,8 +259,8 @@ const AdminDashboardAnalytics: React.FC<AdminDashboardAnalyticsProps> = ({
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <Target className="h-5 w-5" /> Module Completion Rates
           </h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80" style={{minHeight: '200px'}}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart data={moduleCompletionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" />
@@ -291,8 +291,8 @@ const AdminDashboardAnalytics: React.FC<AdminDashboardAnalyticsProps> = ({
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <BookOpen className="h-5 w-5" /> Top Courses by Enrollment
           </h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80" style={{minHeight: '200px'}}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart data={enrollmentsByCourse}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" />
@@ -316,8 +316,8 @@ const AdminDashboardAnalytics: React.FC<AdminDashboardAnalyticsProps> = ({
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <Layers className="h-5 w-5" /> Course Difficulty Distribution
           </h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80" style={{minHeight: '200px'}}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={difficultyDistributionWithColors}
@@ -352,8 +352,8 @@ const AdminDashboardAnalytics: React.FC<AdminDashboardAnalyticsProps> = ({
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <BookOpen className="h-5 w-5" /> Content Type Distribution
         </h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-80" style={{minHeight: '200px'}}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <PieChart>
               <Pie
                 data={contentTypeDistributionWithColors}

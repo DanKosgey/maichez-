@@ -482,3 +482,139 @@ export const fetchContentTypeDistribution = async () => {
     return [];
   }
 };
+
+// Function to fetch all trade rules for a user
+export const fetchUserRules = async (userId?: string): Promise<any[]> => {
+  try {
+    console.log('Fetching user rules for userId:', userId);
+    
+    // If no userId is provided or it's undefined, return only global rules
+    if (!userId || userId === 'undefined') {
+      console.log('No valid userId provided, fetching global rules only');
+      const { data, error } = await supabase
+        .from('trade_rules')
+        .select('*')
+        .is('created_by', null)
+        .order('order_number', { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    }
+    
+    // Fetch rules for the specific user and global rules
+    const { data, error } = await supabase
+      .from('trade_rules')
+      .select('*')
+      .or(`created_by.eq.${userId},created_by.is.null`)
+      .order('order_number', { ascending: true });
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching user rules:', error);
+    throw error;
+  }
+};
+
+// Function to create a new trade rule
+export const createTradeRule = async (rule: any) => {
+  try {
+    console.log('Creating trade rule with data:', rule);
+    
+    // If created_by is undefined, null, or an invalid UUID, set it to null
+    if (!rule.created_by || 
+        rule.created_by === 'undefined' || 
+        rule.created_by === '00000000-0000-0000-0000-000000000000') {
+      console.log('Invalid or missing created_by, setting to null for global rule');
+      rule.created_by = null;
+    } else {
+      // Validate that created_by references an existing profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', rule.created_by)
+        .single();
+      
+      if (profileError || !profileData) {
+        console.warn(`Profile with id ${rule.created_by} not found. Setting created_by to null.`);
+        rule.created_by = null;
+      }
+    }
+    
+    const { data, error } = await supabase
+      .from('trade_rules')
+      .insert([rule])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    console.log('Trade rule created successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error creating trade rule:', error);
+    throw error;
+  }
+};
+
+// Function to update a trade rule
+export const updateTradeRule = async (ruleId: string, updates: any) => {
+  try {
+    console.log('Updating trade rule:', ruleId, updates);
+    
+    const { data, error } = await supabase
+      .from('trade_rules')
+      .update(updates)
+      .eq('id', ruleId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    console.log('Trade rule updated successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error updating trade rule:', error);
+    throw error;
+  }
+};
+
+// Function to delete a trade rule
+export const deleteTradeRule = async (ruleId: string) => {
+  try {
+    console.log('Deleting trade rule:', ruleId);
+    
+    const { error } = await supabase
+      .from('trade_rules')
+      .delete()
+      .eq('id', ruleId);
+    
+    if (error) throw error;
+    console.log('Trade rule deleted successfully');
+    return true;
+  } catch (error) {
+    console.error('Error deleting trade rule:', error);
+    throw error;
+  }
+};
+
+// Function to reorder trade rules
+export const reorderTradeRules = async (ruleIds: string[]) => {
+  try {
+    console.log('Reordering trade rules:', ruleIds);
+    
+    const updates = ruleIds.map((id, index) => ({
+      id,
+      order_number: index
+    }));
+    
+    const { error } = await supabase
+      .from('trade_rules')
+      .upsert(updates);
+    
+    if (error) throw error;
+    console.log('Trade rules reordered successfully');
+    return true;
+  } catch (error) {
+    console.error('Error reordering trade rules:', error);
+    throw error;
+  }
+};

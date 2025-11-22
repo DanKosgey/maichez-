@@ -204,8 +204,8 @@ const StudentProgressReport: React.FC<StudentProgressReportProps> = ({
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5" /> Progress Trend (Last 7 Days)
           </h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80" style={{minHeight: '200px'}}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={progressTrendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="date" stroke="#9CA3AF" />
@@ -235,8 +235,8 @@ const StudentProgressReport: React.FC<StudentProgressReportProps> = ({
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <BookOpen className="h-5 w-5" /> Completed Modules by Type
           </h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-80" style={{minHeight: '200px'}}>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <PieChart>
                 <Pie
                   data={moduleTypeDistribution}

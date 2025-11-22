@@ -1,4 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { supabase } from '../supabase/client';
 
 // Initialize Gemini
 // NOTE: In a real app, this would be imported from a secure config
@@ -11,6 +12,24 @@ const getApiKey = () => {
 
 const API_KEY = getApiKey();
 const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+// Function to fetch user-specific rules from database
+const fetchUserRulesFromDB = async (userId: string): Promise<string[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('trade_rules')
+      .select('text')
+      .or(`created_by.eq.${userId},created_by.is.null`)
+      .order('order_number', { ascending: true });
+    
+    if (error) throw error;
+    
+    return data ? data.map((rule: any) => rule.text) : [];
+  } catch (error) {
+    console.error('Error fetching user rules from DB:', error);
+    return [];
+  }
+};
 
 export const validateTradeWithGemini = async (
   tradeDetails: string, 
@@ -70,4 +89,17 @@ export const validateTradeWithGemini = async (
     console.error("Gemini API Error:", error);
     return "I'm having trouble analyzing the market right now. Please try again later.";
   }
+};
+
+// Enhanced function that fetches user rules from database
+export const validateTradeWithGeminiForUser = async (
+  userId: string,
+  tradeDetails: string, 
+  imageBase64?: string
+): Promise<string> => {
+  // Fetch user-specific rules from database
+  const userRules = await fetchUserRulesFromDB(userId);
+  
+  // Use the existing validation function with the fetched rules
+  return validateTradeWithGemini(tradeDetails, userRules, imageBase64);
 };

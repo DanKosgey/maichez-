@@ -1,26 +1,95 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { validateTradeWithGemini } from '../services/geminiService';
 import { Send, Upload, AlertTriangle, CheckCircle, XCircle, Loader2, BookOpen } from 'lucide-react';
 import { ChatMessage, TradeRule, TradeEntry, TradeValidationStatus } from '../types';
+import { fetchUserRules } from '../services/adminService';
+import { supabase } from '../supabase/client';
 
 interface AITradeAssistantProps {
-  userRules: TradeRule[];
+  userId: string;
   onLogTrade: (entry: Partial<TradeEntry>) => void;
 }
 
-const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userRules, onLogTrade }) => {
+const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'model', text: 'Hello! I am your AI Risk Manager. Tell me about the trade you want to take. Is it a Buy or Sell?', timestamp: new Date() }
   ]);
   const [inputText, setInputText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [userRules, setUserRules] = useState<TradeRule[]>([]);
+  const [loadingRules, setLoadingRules] = useState(true);
   
   // State to track the context of the last trade discussed
   const [lastAnalyzedTrade, setLastAnalyzedTrade] = useState<Partial<TradeEntry> | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load user rules on component mount
+  useEffect(() => {
+    loadUserRules();
+    
+    // Set up real-time subscription for rule changes
+    const channel = supabase
+      .channel('user-rule-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'trade_rules',
+        },
+        (payload) => {
+          loadUserRules();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'trade_rules',
+        },
+        (payload) => {
+          loadUserRules();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'trade_rules',
+        },
+        (payload) => {
+          loadUserRules();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
+  const loadUserRules = async () => {
+    try {
+      setLoadingRules(true);
+      const rulesData = await fetchUserRules(userId);
+      const formattedRules = rulesData.map((rule: any) => ({
+        id: rule.id,
+        text: rule.text,
+        type: rule.type,
+        required: rule.required
+      }));
+      setUserRules(formattedRules);
+    } catch (error) {
+      console.error('Error loading user rules:', error);
+    } finally {
+      setLoadingRules(false);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -181,18 +250,23 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userRules, onLogTra
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder="Example: Buy EURUSD. Price swept Asian Lows, entered FVG..."
             className="flex-1 bg-gray-900 text-white border border-gray-600 rounded-lg px-4 focus:outline-none focus:border-trade-accent"
+            disabled={isAnalyzing || loadingRules}
           />
           
           <button 
             onClick={handleSendMessage}
-            disabled={isAnalyzing || (!inputText && !selectedImage)}
+            disabled={isAnalyzing || (!inputText && !selectedImage) || loadingRules}
             className="bg-trade-accent text-white p-3 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             <Send className="h-5 w-5" />
           </button>
         </div>
         <div className="mt-2 text-xs text-gray-500 text-center">
-          Use <span className="text-yellow-500">screenshots</span> for better AI accuracy.
+          {loadingRules ? (
+            <span>Loading your rules...</span>
+          ) : (
+            <span>Using <span className="text-yellow-500">{userRules.length} rules</span> for validation. Use <span className="text-yellow-500">screenshots</span> for better AI accuracy.</span>
+          )}
         </div>
       </div>
     </div>

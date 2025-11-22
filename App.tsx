@@ -350,11 +350,9 @@ function App() {
           case 'admin-rules':
             return (
               <RuleBuilder
+                userId="00000000-0000-0000-0000-000000000000"
                 rules={tradeRules}
-                onAdd={handleAddRule}
-                onUpdate={handleUpdateRule}
-                onDelete={handleDeleteRule}
-                onReorder={handleReorderRules}
+                onRulesChange={setTradeRules}
               />
             );
           case 'admin-content':
