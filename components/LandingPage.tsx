@@ -48,11 +48,66 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
   useEffect(() => {
     const fetchPlans = async () => {
       try {
+        setLoadingPlans(true);
         const plans = await socialMediaService.getSubscriptionPlans();
-        setSubscriptionPlans(plans);
-      } catch (error) {
-        console.error('Error fetching subscription plans:', error);
-        // Fallback to default plans if fetch fails
+        if (plans && plans.length > 0) {
+          setSubscriptionPlans(plans);
+        } else {
+          // Fallback to default plans if API fails or returns empty
+          setSubscriptionPlans([
+            {
+              id: 'free',
+              name: 'Free Plan',
+              description: 'Basic access to the platform',
+              price: 0,
+              interval: 'one-time',
+              features: ['Live Signals from Premium Groups', 'Basic Market Updates', 'Community Access'],
+              isActive: true,
+              sortOrder: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            },
+            {
+              id: 'foundation',
+              name: 'Foundation',
+              description: 'Core course modules and community access',
+              price: 45,
+              interval: 'one-time',
+              features: ['Modules 1-4 (Core CRT)', 'Private Community', 'Monthly Group Q&A'],
+              isActive: true,
+              sortOrder: 1,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            },
+            {
+              id: 'professional',
+              name: 'Professional',
+              description: 'Full course access with AI Trade Guard',
+              price: 60,
+              interval: 'one-time',
+              features: ['Everything in Foundation', 'AI Trade Guard Access', 'Full Course (Modules 1-6)', 'Advanced Journal & Analytics', 'Weekly Live Trading Room'],
+              isActive: true,
+              sortOrder: 2,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            },
+            {
+              id: 'elite',
+              name: 'Elite Mentorship',
+              description: 'Premium mentorship with personalized support',
+              price: 100,
+              interval: 'one-time',
+              features: ['Everything in Pro', '2x Monthly 1-on-1 Calls', 'Private Signal Group', 'Lifetime Updates'],
+              isActive: true,
+              sortOrder: 3,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }
+          ]);
+        }
+      } catch (err) {
+        console.error('Error fetching subscription plans:', err);
+        // Fallback to default plans on error
         setSubscriptionPlans([
           {
             id: 'free',
@@ -294,101 +349,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
           </motion.div>
         </header>
 
-        {/* Why Traders Fail Section */}
-        <section className="py-12 sm:py-20 bg-trade-dark border-t border-gray-800">
-          <div className="container mx-auto px-4 sm:px-6">
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInUp}
-              className="text-center mb-10 sm:mb-16"
-            >
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4">Why 90% of Traders <span className="text-red-500">Fail</span></h2>
-              <p className="text-base sm:text-xl text-gray-400">Most gurus teach indicators and hope. I teach <span className="text-white font-bold">Institutional Logic</span>.</p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {[
-                { icon: AlertTriangle, title: "Retail Logic", desc: "Trading support & resistance lines that banks use to trap liquidity.", color: "text-red-500" },
-                { icon: Shield, title: "Institutional Logic", desc: "We trade WITH the banks, targeting liquidity sweeps & fair value gaps.", color: "text-trade-neon" },
-                { icon: TrendingUp, title: "Precision R:R", desc: "Minimum 1:3 Risk-to-Reward ratio enforced by our AI assistant.", color: "text-blue-400" }
-              ].map((item, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.2 }}
-                  className="bg-gray-900/50 p-6 sm:p-8 rounded-xl sm:rounded-2xl border border-gray-800 hover:border-trade-neon/30 transition"
-                >
-                  <item.icon className={`h-8 w-8 sm:h-12 sm:w-12 ${item.color} mb-4 sm:mb-6`} />
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{item.title}</h3>
-                  <p className="text-gray-400 text-sm sm:text-base leading-relaxed">{item.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* AI Trade Guard Section */}
-        <section className="py-12 sm:py-24 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-black to-trade-dark/50" />
-          <div className="container mx-auto px-4 sm:px-6 relative z-10">
-            <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-16">
-              <div className="lg:w-1/2">
-                <div className="inline-block bg-trade-neon text-black font-bold px-3 py-1 sm:px-4 sm:py-1 rounded-full mb-4 sm:mb-6 text-xs sm:text-sm">
-                  EXCLUSIVE TECHNOLOGY
-                </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 sm:mb-6 leading-tight">
-                  The Only Program With An <span className="text-trade-neon">AI That Says "NO"</span>
-                </h2>
-                <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-8">
-                  You paste your setup → AI runs my exact 6-point checklist.
-                  <br /><br />
-                  <span className="text-green-400 font-bold">✅ Green Light:</span> Trade is valid. High probability.<br />
-                  <span className="text-red-500 font-bold">❌ Red Light:</span> STOP. You are about to lose money.
-                </p>
-                <button
-                  onClick={() => onSelectTier('signup')} // Redirect to signup page
-                  className="bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg hover:bg-gray-200 transition flex items-center gap-2"
-                >
-                  Try AI Trade Guard <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
-              </div>
-
-              <div className="lg:w-1/2">
-                <div className="bg-gray-900 border border-gray-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl shadow-trade-neon/10 transform rotate-1 sm:rotate-2 hover:rotate-0 transition duration-500">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-gray-800 pb-3 sm:pb-4">
-                    <div className="h-2 w-2 sm:h-3 sm:w-3 bg-green-500 rounded-full animate-pulse" />
-                    <div className="font-bold text-sm sm:text-base">AI Analysis: EURUSD Buy Setup</div>
-                  </div>
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-start gap-2 sm:gap-3 text-green-400">
-                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" /> <span className="text-sm sm:text-base">Liquidity grabbed from PD Low</span>
-                    </div>
-                    <div className="flex items-start gap-2 sm:gap-3 text-green-400">
-                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" /> <span className="text-sm sm:text-base">Unmitigated FVG Identified</span>
-                    </div>
-                    <div className="flex items-start gap-2 sm:gap-3 text-green-400">
-                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" /> <span className="text-sm sm:text-base">Market Structure Shift (MSS) confirmed</span>
-                    </div>
-                    <div className="bg-green-500/10 border border-green-500/30 p-3 sm:p-4 rounded-lg mt-3 sm:mt-4">
-                      <p className="font-bold text-green-400 mb-1 text-sm sm:text-base">✅ TRADE APPROVED</p>
-                      <p className="text-xs sm:text-sm text-gray-300">All confluence factors met. Risk 1% and set TP at 1.0950.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Pricing Section */}
         <section className="py-12 sm:py-24 bg-black">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="text-center mb-10 sm:mb-16">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4">Choose Your Transformation</h2>
               <p className="text-gray-400 text-sm sm:text-base">One-time payment. Lifetime access. No hidden fees.</p>
+              <p className="text-gray-400 text-sm sm:text-base mt-4">Account management services are available - just contact Alex or support staff</p>
             </div>
 
             {loadingPlans ? (
@@ -481,6 +448,127 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 })}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Challenges & Achievements Section */}
+        <section className="py-6 sm:py-8 bg-gradient-to-r from-gray-900 to-black border-b border-gray-800">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
+              <div className="bg-gray-800/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center border border-gray-700 hover:border-trade-neon/50 transition">
+                <div className="text-trade-neon font-black text-lg sm:text-xl md:text-2xl">10{'>'}500</div>
+                <div className="text-gray-400 text-xs sm:text-sm mt-1">Completed</div>
+              </div>
+              <div className="bg-gray-800/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center border border-gray-700 hover:border-trade-neon/50 transition">
+                <div className="text-trade-neon font-black text-lg sm:text-xl md:text-2xl">100{'>'}1000</div>
+                <div className="text-gray-400 text-xs sm:text-sm mt-1">Completed</div>
+              </div>
+              <div className="bg-gray-800/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center border border-gray-700 hover:border-trade-neon/50 transition">
+                <div className="text-trade-neon font-black text-lg sm:text-xl md:text-2xl">20{'>'}1000</div>
+                <div className="text-gray-400 text-xs sm:text-sm mt-1">Completed</div>
+              </div>
+              <div className="bg-gray-800/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center border border-gray-700 hover:border-trade-neon/50 transition">
+                <div className="text-trade-neon font-black text-lg sm:text-xl md:text-2xl">100{'>'}1500</div>
+                <div className="text-gray-400 text-xs sm:text-sm mt-1">Currently</div>
+              </div>
+              <div className="bg-gray-800/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center border border-gray-700 hover:border-trade-neon/50 transition md:col-span-1 sm:col-span-3 col-span-2">
+                <div className="text-trade-neon font-black text-lg sm:text-xl md:text-2xl">787 Pips</div>
+                <div className="text-gray-400 text-xs sm:text-sm mt-1">Most Pips/Trade</div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-4 sm:mt-6">
+              <p className="text-gray-400 text-xs sm:text-sm">Highest Drawdown: <span className="text-red-400 font-bold">$600</span> • And many more achievements!</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Why Traders Fail Section */}
+        <section className="py-12 sm:py-20 bg-trade-dark border-t border-gray-800">
+          <div className="container mx-auto px-4 sm:px-6">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeInUp}
+              className="text-center mb-10 sm:mb-16"
+            >
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4">Why 90% of Traders <span className="text-red-500">Fail</span></h2>
+              <p className="text-base sm:text-xl text-gray-400">Most gurus teach indicators and hope. I teach <span className="text-white font-bold">Institutional Logic</span>.</p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {[
+                { icon: AlertTriangle, title: "Retail Logic", desc: "Trading support & resistance lines that banks use to trap liquidity.", color: "text-red-500" },
+                { icon: Shield, title: "Institutional Logic", desc: "We trade WITH the banks, targeting liquidity sweeps & fair value gaps.", color: "text-trade-neon" },
+                { icon: TrendingUp, title: "Precision R:R", desc: "Minimum 1:3 Risk-to-Reward ratio enforced by our AI assistant.", color: "text-blue-400" }
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.2 }}
+                  className="bg-gray-900/50 p-6 sm:p-8 rounded-xl sm:rounded-2xl border border-gray-800 hover:border-trade-neon/30 transition"
+                >
+                  <item.icon className={`h-8 w-8 sm:h-12 sm:w-12 ${item.color} mb-4 sm:mb-6`} />
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{item.title}</h3>
+                  <p className="text-gray-400 text-sm sm:text-base leading-relaxed">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* AI Trade Guard Section */}
+        <section className="py-12 sm:py-24 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-black to-trade-dark/50" />
+          <div className="container mx-auto px-4 sm:px-6 relative z-10">
+            <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12 lg:gap-16">
+              <div className="lg:w-1/2">
+                <div className="inline-block bg-trade-neon text-black font-bold px-3 py-1 sm:px-4 sm:py-1 rounded-full mb-4 sm:mb-6 text-xs sm:text-sm">
+                  EXCLUSIVE TECHNOLOGY
+                </div>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 sm:mb-6 leading-tight">
+                  The Only Program With An <span className="text-trade-neon">AI That Says "NO"</span>
+                </h2>
+                <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-6 sm:mb-8">
+                  You paste your setup → AI runs my exact 6-point checklist.
+                  <br /><br />
+                  <span className="text-green-400 font-bold">✅ Green Light:</span> Trade is valid. High probability.<br />
+                  <span className="text-red-500 font-bold">❌ Red Light:</span> STOP. You are about to lose money.
+                </p>
+                <button
+                  onClick={() => onSelectTier('signup')} // Redirect to signup page
+                  className="bg-white text-black px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg hover:bg-gray-200 transition flex items-center gap-2"
+                >
+                  Try AI Trade Guard <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                </button>
+              </div>
+
+              <div className="lg:w-1/2">
+                <div className="bg-gray-900 border border-gray-700 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl shadow-trade-neon/10 transform rotate-1 sm:rotate-2 hover:rotate-0 transition duration-500">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 border-b border-gray-800 pb-3 sm:pb-4">
+                    <div className="h-2 w-2 sm:h-3 sm:w-3 bg-green-500 rounded-full animate-pulse" />
+                    <div className="font-bold text-sm sm:text-base">AI Analysis: EURUSD Buy Setup</div>
+                  </div>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-start gap-2 sm:gap-3 text-green-400">
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" /> <span className="text-sm sm:text-base">Liquidity grabbed from PD Low</span>
+                    </div>
+                    <div className="flex items-start gap-2 sm:gap-3 text-green-400">
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" /> <span className="text-sm sm:text-base">Unmitigated FVG Identified</span>
+                    </div>
+                    <div className="flex items-start gap-2 sm:gap-3 text-green-400">
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" /> <span className="text-sm sm:text-base">Market Structure Shift (MSS) confirmed</span>
+                    </div>
+                    <div className="bg-green-500/10 border border-green-500/30 p-3 sm:p-4 rounded-lg mt-3 sm:mt-4">
+                      <p className="font-bold text-green-400 mb-1 text-sm sm:text-base">✅ TRADE APPROVED</p>
+                      <p className="text-xs sm:text-sm text-gray-300">All confluence factors met. Risk 1% and set TP at 1.0950.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

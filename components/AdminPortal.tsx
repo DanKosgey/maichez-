@@ -156,7 +156,14 @@ const PlanForm: React.FC<{
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ ...formData, features: formData.features.split('\n').filter(f => f.trim()), price: Number(formData.price) });
+    // Ensure price is a number
+    const price = typeof formData.price === 'string' ? parseFloat(formData.price) : formData.price;
+    
+    onSubmit({ 
+      ...formData, 
+      features: formData.features.split('\n').filter(f => f.trim()), 
+      price: isNaN(price) ? 0 : price 
+    });
   };
 
   return (
@@ -599,12 +606,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
 
   const handlePlanDelete = async (planId: string) => {
     try {
-      await socialMediaService.deleteSubscriptionPlan(planId);
-      setPlans(prev => prev.filter(p => p.id !== planId));
-      alert('Subscription plan deleted.');
+      const confirmed = window.confirm('Are you sure you want to delete this subscription plan? This action cannot be undone.');
+      if (confirmed && await socialMediaService.deleteSubscriptionPlan(planId)) {
+        setPlans(prev => prev.filter(p => p.id !== planId));
+        alert('Subscription plan deleted successfully.');
+      } else if (confirmed) {
+        alert('Failed to delete subscription plan. Please try again.');
+      }
     } catch (err) {
-      console.error(err);
-      alert('Failed to delete subscription plan.');
+      console.error('Error deleting subscription plan:', err);
+      alert('An error occurred while deleting the subscription plan.');
     }
   };
 

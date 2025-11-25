@@ -605,12 +605,21 @@ export const socialMediaService = {
 
   async deleteSubscriptionPlan(id: string): Promise<boolean> {
     try {
-      const { error } = await supabase
+      // First, delete all associated plan features to avoid foreign key constraint issues
+      const { error: featureError } = await supabase
+        .from('plan_features')
+        .delete()
+        .eq('plan_id', id);
+      
+      if (featureError) throw featureError;
+      
+      // Then delete the subscription plan
+      const { error: planError } = await supabase
         .from('subscription_plans')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (planError) throw planError;
       return true;
     } catch (error) {
       console.error('Error deleting subscription plan:', error);
