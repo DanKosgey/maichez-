@@ -10,6 +10,11 @@ const SettingsTab: React.FC = () => {
   const [showPlanForm, setShowPlanForm] = useState(false);
   const [editingLink, setEditingLink] = useState<CommunityLink | null>(null);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  // Loading states
+  const [isCreatingLink, setIsCreatingLink] = useState(false);
+  const [isUpdatingLink, setIsUpdatingLink] = useState(false);
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+  const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
 
   // Form states
   const [linkFormData, setLinkFormData] = useState({
@@ -53,6 +58,7 @@ const SettingsTab: React.FC = () => {
   }, [fetchCommunityLinks, fetchPlans]);
 
   const handleCreateCommunityLink = async (linkData: any) => {
+    setIsCreatingLink(true);
     try {
       const newLink = await socialMediaService.createCommunityLink(linkData);
       if (newLink) {
@@ -70,10 +76,13 @@ const SettingsTab: React.FC = () => {
       } else {
         alert('An error occurred while creating the community link: ' + (err.message || 'Unknown error'));
       }
+    } finally {
+      setIsCreatingLink(false);
     }
   };
 
   const handleUpdateCommunityLink = async (id: string, updates: any) => {
+    setIsUpdatingLink(true);
     try {
       const result = await socialMediaService.updateCommunityLink(id, updates);
       if (result) {
@@ -91,6 +100,8 @@ const SettingsTab: React.FC = () => {
       } else {
         alert('An error occurred while updating the community link: ' + (err.message || 'Unknown error'));
       }
+    } finally {
+      setIsUpdatingLink(false);
     }
   };
 
@@ -115,6 +126,7 @@ const SettingsTab: React.FC = () => {
   };
 
   const handleCreatePlan = async (planData: any) => {
+    setIsCreatingPlan(true);
     try {
       const newPlan = await socialMediaService.createSubscriptionPlan(planData);
       if (newPlan) {
@@ -127,10 +139,13 @@ const SettingsTab: React.FC = () => {
     } catch (err) {
       console.error('Error creating subscription plan:', err);
       alert('An error occurred while creating the subscription plan.');
+    } finally {
+      setIsCreatingPlan(false);
     }
   };
 
   const handleUpdatePlan = async (id: string, updates: any) => {
+    setIsUpdatingPlan(true);
     try {
       // Format features properly
       if (updates.features && typeof updates.features === 'string') {
@@ -148,6 +163,8 @@ const SettingsTab: React.FC = () => {
     } catch (err) {
       console.error('Error updating subscription plan:', err);
       alert('An error occurred while updating the subscription plan.');
+    } finally {
+      setIsUpdatingPlan(false);
     }
   };
 
@@ -466,9 +483,20 @@ const SettingsTab: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-trade-neon hover:bg-green-400 text-black font-bold rounded-lg transition-colors"
+                    disabled={isCreatingLink || isUpdatingLink}
+                    className="px-5 py-2.5 bg-trade-neon hover:bg-green-400 text-black font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {editingLink ? 'Update Link' : 'Create Link'}
+                    {isCreatingLink || isUpdatingLink ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (
+                      editingLink ? 'Update Link' : 'Create Link'
+                    )}
                   </button>
                 </div>
               </form>
@@ -679,9 +707,20 @@ const SettingsTab: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-trade-neon hover:bg-green-400 text-black font-bold rounded-lg transition-colors"
+                    disabled={isCreatingPlan || isUpdatingPlan}
+                    className="px-5 py-2.5 bg-trade-neon hover:bg-green-400 text-black font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {editingPlan ? 'Update Plan' : 'Create Plan'}
+                    {isCreatingPlan || isUpdatingPlan ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (
+                      editingPlan ? 'Update Plan' : 'Create Plan'
+                    )}
                   </button>
                 </div>
               </form>
@@ -744,6 +783,16 @@ const SettingsTab: React.FC = () => {
           )}
         </div>
       </div>
+      {/* Loading Overlay */}
+      {(isCreatingLink || isUpdatingLink || isCreatingPlan || isUpdatingPlan) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl p-8 flex flex-col items-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-trade-neon"></div>
+            <p className="text-white text-lg font-medium">Hang tight while we process your request...</p>
+            <p className="text-gray-400 text-sm">This usually takes just a moment</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

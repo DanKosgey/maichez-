@@ -32,30 +32,6 @@ const AnalyticsTab: React.FC = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
-          <h3 className="font-bold text-xl mb-6 text-gray-200">Revenue Growth</h3>
-          <div className="h-72">
-            {formattedRevenueData.length > 0 ? (
-              <ResponsiveContainer>
-                <AreaChart data={formattedRevenueData}>
-                  <defs>
-                    <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
-                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
-                  <Tooltip contentStyle={{backgroundColor: '#1f2937', border: '1px solid #475569', borderRadius: '8px'}} />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="url(#revGradient)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">No revenue data</div>
-            )}
-          </div>
-        </div>
-        <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
           <h3 className="font-bold text-xl mb-6 text-gray-200">Course Completion Rates</h3>
           <div className="h-72">
             {formattedCourseData.length > 0 ? (
