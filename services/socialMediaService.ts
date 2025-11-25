@@ -545,6 +545,7 @@ export const socialMediaService = {
 
   async createSubscriptionPlan(plan: Omit<SubscriptionPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<SubscriptionPlan | null> {
     try {
+      console.log('Creating subscription plan with data:', plan);
       const { data, error } = await supabase
         .from('subscription_plans')
         .insert({
@@ -558,9 +559,11 @@ export const socialMediaService = {
         })
         .select()
         .single();
-      
+    
+      console.log('Supabase response:', { data, error });
+    
       if (error) throw error;
-      
+    
       return {
         id: data.id,
         name: data.name,

@@ -53,111 +53,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
         if (plans && plans.length > 0) {
           setSubscriptionPlans(plans);
         } else {
-          // Fallback to default plans if API fails or returns empty
-          setSubscriptionPlans([
-            {
-              id: 'free',
-              name: 'Free Plan',
-              description: 'Basic access to the platform',
-              price: 0,
-              interval: 'one-time',
-              features: ['Live Signals from Premium Groups', 'Basic Market Updates', 'Community Access'],
-              isActive: true,
-              sortOrder: 0,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            },
-            {
-              id: 'foundation',
-              name: 'Foundation',
-              description: 'Core course modules and community access',
-              price: 45,
-              interval: 'one-time',
-              features: ['Modules 1-4 (Core CRT)', 'Private Community', 'Monthly Group Q&A'],
-              isActive: true,
-              sortOrder: 1,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            },
-            {
-              id: 'professional',
-              name: 'Professional',
-              description: 'Full course access with AI Trade Guard',
-              price: 60,
-              interval: 'one-time',
-              features: ['Everything in Foundation', 'AI Trade Guard Access', 'Full Course (Modules 1-6)', 'Advanced Journal & Analytics', 'Weekly Live Trading Room'],
-              isActive: true,
-              sortOrder: 2,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            },
-            {
-              id: 'elite',
-              name: 'Elite Mentorship',
-              description: 'Premium mentorship with personalized support',
-              price: 100,
-              interval: 'one-time',
-              features: ['Everything in Pro', '2x Monthly 1-on-1 Calls', 'Private Signal Group', 'Lifetime Updates'],
-              isActive: true,
-              sortOrder: 3,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            }
-          ]);
+          // Don't show default plans if no plans exist in database
+          setSubscriptionPlans([]);
         }
       } catch (err) {
         console.error('Error fetching subscription plans:', err);
-        // Fallback to default plans on error
-        setSubscriptionPlans([
-          {
-            id: 'free',
-            name: 'Free Plan',
-            description: 'Basic access to the platform',
-            price: 0,
-            interval: 'one-time',
-            features: ['Live Signals from Premium Groups', 'Basic Market Updates', 'Community Access'],
-            isActive: true,
-            sortOrder: 0,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'foundation',
-            name: 'Foundation',
-            description: 'Core course modules and community access',
-            price: 45,
-            interval: 'one-time',
-            features: ['Modules 1-4 (Core CRT)', 'Private Community', 'Monthly Group Q&A'],
-            isActive: true,
-            sortOrder: 1,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'professional',
-            name: 'Professional',
-            description: 'Full course access with AI Trade Guard',
-            price: 60,
-            interval: 'one-time',
-            features: ['Everything in Foundation', 'AI Trade Guard Access', 'Full Course (Modules 1-6)', 'Advanced Journal & Analytics', 'Weekly Live Trading Room'],
-            isActive: true,
-            sortOrder: 2,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'elite',
-            name: 'Elite Mentorship',
-            description: 'Premium mentorship with personalized support',
-            price: 100,
-            interval: 'one-time',
-            features: ['Everything in Pro', '2x Monthly 1-on-1 Calls', 'Private Signal Group', 'Lifetime Updates'],
-            isActive: true,
-            sortOrder: 3,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        ]);
+        // Don't show default plans on error
+        setSubscriptionPlans([]);
       } finally {
         setLoadingPlans(false);
       }
@@ -352,15 +254,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
         {/* Pricing Section */}
         <section className="py-12 sm:py-24 bg-black">
           <div className="container mx-auto px-4 sm:px-6">
-            <div className="text-center mb-10 sm:mb-16">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4">Choose Your Transformation</h2>
-            </div>
+            {subscriptionPlans.length > 0 && (
+              <div className="text-center mb-10 sm:mb-16">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4">Choose Your Transformation</h2>
+              </div>
+            )}
 
             {loadingPlans ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-trade-neon"></div>
               </div>
-            ) : (
+            ) : subscriptionPlans.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto">
                 {subscriptionPlans.map((plan, index) => {
                   // Determine styling based on plan position
@@ -444,6 +348,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                     </div>
                   );
                 })}
+              </div>
+            ) : (
+              // Show nothing when there are no subscription plans
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg"></p>
               </div>
             )}
           </div>

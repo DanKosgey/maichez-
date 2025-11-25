@@ -148,7 +148,7 @@ const PlanForm: React.FC<{
     name: plan?.name || '',
     description: plan?.description || '',
     price: plan?.price || 0,
-    interval: plan?.interval || 'one-time',
+    interval: plan?.interval || ('one-time' as const),
     features: plan?.features?.join('\n') || '',
     isActive: plan?.isActive ?? true,
     sortOrder: plan?.sortOrder || 0
@@ -162,7 +162,8 @@ const PlanForm: React.FC<{
     onSubmit({ 
       ...formData, 
       features: formData.features.split('\n').filter(f => f.trim()), 
-      price: isNaN(price) ? 0 : price 
+      price: isNaN(price) ? 0 : price,
+      interval: formData.interval as 'one-time' | 'monthly' | 'yearly'
     });
   };
 
@@ -210,11 +211,11 @@ const PlanForm: React.FC<{
             <input type="checkbox" id="planIsActive" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="h-4 w-4" />
             <label htmlFor="planIsActive" className="text-sm text-gray-300">Active Plan</label>
           </div>
+          <div className="p-4 border-t border-gray-700 flex justify-end gap-2">
+            <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold">Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-trade-neon text-black font-bold rounded-lg hover:bg-green-400">{plan ? 'Update' : 'Create'}</button>
+          </div>
         </form>
-        <div className="p-4 border-t border-gray-700 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold">Cancel</button>
-          <button type="submit" className="px-4 py-2 bg-trade-neon text-black font-bold rounded-lg hover:bg-green-400">{plan ? 'Update' : 'Create'}</button>
-        </div>
       </div>
     </div>
   );
@@ -715,7 +716,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
 
   const handleCreatePlan = async (plan: any) => {
     try {
+      console.log('Creating plan with data:', plan);
       const newPlan = await socialMediaService.createSubscriptionPlan(plan);
+      console.log('Create plan response:', newPlan);
       if (newPlan) {
         setPlans(prev => [...prev, newPlan]);
         setShowPlanForm(false);
@@ -770,10 +773,14 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
 
   const refreshSettingsData = async () => {
     try {
+      console.log('Refreshing settings data...');
       const [links, plansData] = await Promise.all([
         socialMediaService.getAllCommunityLinks(),
         socialMediaService.getAllSubscriptionPlans()
       ]);
+      
+      console.log('Links data:', links);
+      console.log('Plans data:', plansData);
       
       setCommunityLinks(links || []);
       setPlans(plansData || []);
@@ -824,9 +831,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
         // Create each plan
         for (const plan of defaultPlans) {
           try {
+            console.log('Creating plan:', plan);
             const newPlan = await socialMediaService.createSubscriptionPlan(plan);
             if (newPlan) {
               console.log(`Created plan: ${newPlan.name}`);
+            } else {
+              console.log(`Failed to create plan: ${plan.name}`);
             }
           } catch (error) {
             console.error(`Error creating plan ${plan.name}:`, error);
@@ -834,7 +844,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
         }
       
         // Refresh plans after creation
+        console.log('Refreshing plans after creation...');
         const updatedPlans = await socialMediaService.getAllSubscriptionPlans();
+        console.log('Updated plans:', updatedPlans);
         setPlans(updatedPlans || []);
       }
     } catch (err) {
