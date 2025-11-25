@@ -452,59 +452,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, courses, onContinueCourse }
             </div>
           </div>
 
-          {/* Insights & Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-trade-dark p-6 rounded-xl border border-gray-700 flex flex-col">
-                <h3 className="font-bold text-lg mb-6">AI Recommendations</h3>
-                <div className="space-y-4">
-                  <div className="bg-blue-900/20 p-4 rounded-lg border-l-4 border-blue-500 flex justify-between items-start gap-3">
-                    <div>
-                      <h4 className="font-semibold text-sm text-blue-200 flex items-center gap-2">
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                        </span>
-                        Upcoming Live Session
-                      </h4>
-                      <p className="text-xs text-gray-400 mt-1">"NFP Preparation & Setup Review"</p>
-                      <p className="text-[10px] text-gray-500 mt-2 font-mono">Tomorrow, 10:00 AM EST</p>
-                    </div>
-                    <button 
-                      onClick={() => handleAddToCalendar("NFP Prep - Mbauni Protocol Live", nextSessionDate)}
-                      className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-lg transition shadow-lg shadow-blue-900/20 flex flex-col items-center gap-1 min-w-[60px]"
-                      title="Add to Google Calendar"
-                    >
-                      <CalendarPlus className="h-5 w-5" />
-                      <span className="text-[9px] font-bold uppercase">Add</span>
-                    </button>
-                  </div>
-
-                  <div className="bg-gray-800/50 p-4 rounded-lg border-l-4 border-yellow-500 flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-yellow-500 flex-shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-sm text-gray-200">Avg Loss Too High</h4>
-                      <p className="text-xs text-gray-400 mt-1">Your average loss (${stats.avgLoss}) is 60% of your average win. Aim for &lt; 50%.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={`p-6 rounded-xl border flex flex-col items-center justify-center text-center transition-colors duration-500 ${
-                marketStatus.isOpen 
-                  ? 'bg-gradient-to-br from-green-900/40 to-black border-green-800' 
-                  : 'bg-gradient-to-br from-gray-900 to-black border-gray-800'
-              }`}>
-                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                   marketStatus.isOpen ? 'bg-green-500/20 text-green-500 animate-pulse' : 'bg-trade-neon/10 text-trade-neon'
-                 }`}>
-                    <Clock className="h-8 w-8" />
-                 </div>
-                 <h3 className="font-bold text-xl mb-2">{marketStatus.label}</h3>
-                 <p className="text-gray-400 text-sm max-w-xs mb-6">{marketStatus.subtext}</p>
-                 <button onClick={onContinueCourse} className="text-trade-neon font-bold text-sm hover:underline">
-                    Review Pre-Market Routine &rarr;
-                 </button>
-              </div>
+          {/* Market Status */}
+          <div className={`p-6 rounded-xl border flex flex-col items-center justify-center text-center transition-colors duration-500 ${
+            marketStatus.isOpen 
+              ? 'bg-gradient-to-br from-green-900/40 to-black border-green-800' 
+              : 'bg-gradient-to-br from-gray-900 to-black border-gray-800'
+          }`}>
+             <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+               marketStatus.isOpen ? 'bg-green-500/20 text-green-500 animate-pulse' : 'bg-trade-neon/10 text-trade-neon'
+             }`}>
+                <Clock className="h-8 w-8" />
+             </div>
+             <h3 className="font-bold text-xl mb-2">{marketStatus.label}</h3>
+             <p className="text-gray-400 text-sm max-w-xs mb-6">{marketStatus.subtext}</p>
+             <button onClick={onContinueCourse} className="text-trade-neon font-bold text-sm hover:underline">
+                Review Pre-Market Routine &rarr;
+             </button>
           </div>
         </>
       )}
