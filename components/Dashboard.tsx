@@ -153,9 +153,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, courses, onContinueCourse }
         const minutes = now.getMinutes();
         const totalMinutes = hours * 60 + minutes;
 
-        // Market Window: 02:00 to 12:00 (2:00 AM to 12:00 PM)
+        // Market Window: 02:00 to 23:59 (2:00 AM to 11:59 PM)
         const startMinutes = 2 * 60; // 02:00
-        const endMinutes = 12 * 60;  // 12:00
+        const endMinutes = 23 * 60 + 59;  // 23:59
 
         if (totalMinutes >= startMinutes && totalMinutes < endMinutes) {
             // Market is OPEN
