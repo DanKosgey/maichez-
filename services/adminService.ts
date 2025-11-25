@@ -251,6 +251,67 @@ export const fetchRuleViolationsData = async () => {
   }
 };
 
+// Function to fetch student penalties (top 20 students by rejected/warning trades)
+export const fetchStudentPenalties = async () => {
+  try {
+    console.log('Fetching student penalties data...');
+    
+    // First, get all students
+    const { data: studentsData, error: studentsError } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, subscription_tier')
+      .eq('role', 'student');
+    
+    if (studentsError) throw studentsError;
+    
+    // Then get penalty counts for each student
+    const penaltyPromises = studentsData.map(async (student: any) => {
+      const { data: penaltiesData, error: penaltiesError } = await supabase
+        .from('journal_entries')
+        .select('validation_result')
+        .eq('user_id', student.id)
+        .in('validation_result', ['rejected', 'warning']);
+      
+      if (penaltiesError) throw penaltiesError;
+      
+      const rejectedCount = penaltiesData.filter((entry: any) => entry.validation_result === 'rejected').length;
+      const warningCount = penaltiesData.filter((entry: any) => entry.validation_result === 'warning').length;
+      
+      return {
+        id: student.id,
+        name: student.full_name,
+        email: student.email,
+        tier: student.subscription_tier,
+        rejectedCount,
+        warningCount,
+        totalPenalties: rejectedCount + warningCount
+      };
+    });
+    
+    const penaltyData = await Promise.all(penaltyPromises);
+    
+    // Sort by total penalties descending and take top 20
+    const top20Students = penaltyData
+      .filter((student: any) => student.totalPenalties > 0)
+      .sort((a: any, b: any) => b.totalPenalties - a.totalPenalties)
+      .slice(0, 20);
+    
+    console.log('Top 20 students by penalties:', top20Students);
+    
+    return top20Students;
+  } catch (error: any) {
+    console.error('Error fetching student penalties data:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
+    // Return empty array as fallback
+    return [];
+  }
+};
+
 // Function to fetch a specific student with their recent trades
 export const fetchStudentWithTrades = async (studentId: string): Promise<StudentProfile | null> => {
   try {

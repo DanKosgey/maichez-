@@ -7,7 +7,8 @@ import {
   fetchPendingApplications as fetchPendingApplicationsService,
   fetchRevenueGrowthData as fetchRevenueGrowthDataService, 
   fetchCourseEnrollmentCounts as fetchCourseEnrollmentCountsService, 
-  fetchRuleViolationsData as fetchRuleViolationsDataService
+  fetchRuleViolationsData as fetchRuleViolationsDataService,
+  fetchStudentPenalties as fetchStudentPenaltiesService
 } from '../../services/adminService';
 import { socialMediaService } from '../../services/socialMediaService';
 
@@ -38,6 +39,7 @@ interface AdminPortalContextType {
   revenueGrowthData: any[];
   courseEnrollmentData: any[];
   ruleViolationsData: any[];
+  studentPenaltiesData: any[];
   loading: boolean;
   error: string | null;
   // Data fetching functions
@@ -50,6 +52,7 @@ interface AdminPortalContextType {
   fetchRevenueGrowthData: () => Promise<void>;
   fetchCourseEnrollmentData: () => Promise<void>;
   fetchRuleViolationsData: () => Promise<void>;
+  fetchStudentPenaltiesData: () => Promise<void>;
 }
 
 const AdminPortalContext = createContext<AdminPortalContextType | undefined>(undefined);
@@ -67,6 +70,7 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [revenueGrowthData, setRevenueGrowthData] = useState<any[]>([]);
   const [courseEnrollmentData, setCourseEnrollmentData] = useState<any[]>([]);
   const [ruleViolationsData, setRuleViolationsData] = useState<any[]>([]);
+  const [studentPenaltiesData, setStudentPenaltiesData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,7 +107,8 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
         metricsData,
         revenueData,
         enrollmentData,
-        violationsData
+        violationsData,
+        penaltiesData
       ] = await Promise.all([
         fetchAllStudentsService(),
         fetchAllTradesService(),
@@ -113,7 +118,8 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
         fetchBusinessMetricsService(),
         fetchRevenueGrowthDataService(),
         fetchCourseEnrollmentCountsService(),
-        fetchRuleViolationsDataService()
+        fetchRuleViolationsDataService(),
+        fetchStudentPenaltiesService()
       ]);
 
       setStudents(studentsData || []);
@@ -125,6 +131,7 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setRevenueGrowthData(revenueData || []);
       setCourseEnrollmentData(enrollmentData || []);
       setRuleViolationsData(violationsData || []);
+      setStudentPenaltiesData(penaltiesData || []);
       setError(null);
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -216,6 +223,15 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const fetchStudentPenaltiesData = async () => {
+    try {
+      const penaltiesData = await fetchStudentPenaltiesService();
+      setStudentPenaltiesData(penaltiesData || []);
+    } catch (err) {
+      console.error('Error fetching student penalties data:', err);
+    }
+  };
+
   // Initial data fetch
   useEffect(() => {
     fetchData();
@@ -254,7 +270,8 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
       fetchBusinessMetrics,
       fetchRevenueGrowthData,
       fetchCourseEnrollmentData,
-      fetchRuleViolationsData
+      fetchRuleViolationsData,
+      fetchStudentPenaltiesData
     }}>
       {children}
     </AdminPortalContext.Provider>

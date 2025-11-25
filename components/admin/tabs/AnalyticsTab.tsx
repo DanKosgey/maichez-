@@ -1,23 +1,25 @@
 import React from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, CartesianGrid } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { DollarSign, Users, TrendingUp, BarChart2 } from 'lucide-react';
 
 const AnalyticsTab: React.FC = () => {
-  const { businessMetrics, revenueGrowthData, courseEnrollmentData, ruleViolationsData, students } = useAdminPortal();
+  const { businessMetrics, studentPenaltiesData, courseEnrollmentData, ruleViolationsData, students } = useAdminPortal();
   
   // Format data for charts
-  const formattedRevenueData = revenueGrowthData.map(item => ({
-    month: item.month || 'Unknown',
-    revenue: parseFloat(item.revenue) || 0
+  const formattedPenaltyData = (studentPenaltiesData || []).map(item => ({
+    name: item.name?.slice(0, 15) || 'Unknown',
+    penalties: item.totalPenalties || 0,
+    rejected: item.rejectedCount || 0,
+    warning: item.warningCount || 0
   }));
   
-  const formattedCourseData = courseEnrollmentData.map(item => ({
+  const formattedCourseData = (courseEnrollmentData || []).map(item => ({
     name: item.name?.slice(0, 20) || 'Unknown',
     completion: item.count > 0 ? Math.round((item.completed / item.count) * 100) : 0
   }));
   
-  const formattedViolationData = ruleViolationsData.map(item => ({
+  const formattedViolationData = (ruleViolationsData || []).map(item => ({
     rule: item.rule || 'Unknown',
     count: item.count || 0
   }));
@@ -31,6 +33,33 @@ const AnalyticsTab: React.FC = () => {
       
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
+          <h3 className="font-bold text-xl mb-6 text-gray-200">Top 20 Students by Penalties</h3>
+          <div className="h-72">
+            {formattedPenaltyData.length > 0 ? (
+              <ResponsiveContainer>
+                <BarChart data={formattedPenaltyData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
+                  <XAxis type="number" stroke="#94a3b8" fontSize={12} />
+                  <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={12} scale="band" />
+                  <Tooltip 
+                    contentStyle={{backgroundColor: '#1f2937', border: '1px solid #475569', borderRadius: '8px'}} 
+                    formatter={(value, name) => [
+                      value, 
+                      name === 'penalties' ? 'Total Penalties' : 
+                      name === 'rejected' ? 'Rejected Trades' : 
+                      'Warning Trades'
+                    ]}
+                  />
+                  <Bar dataKey="rejected" fill="#ef4444" radius={[0, 4, 4, 0]} stackId="a" />
+                  <Bar dataKey="warning" fill="#f59e0b" radius={[0, 4, 4, 0]} stackId="a" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">No penalty data</div>
+            )}
+          </div>
+        </div>
         <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
           <h3 className="font-bold text-xl mb-6 text-gray-200">Course Completion Rates</h3>
           <div className="h-72">
@@ -55,11 +84,11 @@ const AnalyticsTab: React.FC = () => {
         <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
           <h3 className="font-bold text-xl mb-6 text-gray-200">Tier Distribution</h3>
           <div className="h-72">
-            {businessMetrics.tierData?.length > 0 ? (
+            {(businessMetrics?.tierData || []).length > 0 ? (
               <ResponsiveContainer>
                 <PieChart>
                   <Pie data={businessMetrics.tierData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} label={({ name, value }) => `${name}: ${value}`}>
-                    {businessMetrics.tierData.map((entry: any, index: number) => (
+                    {(businessMetrics?.tierData || []).map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
