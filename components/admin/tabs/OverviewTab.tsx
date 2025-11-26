@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
 import { 
-  DollarSign, BarChart2, AlertTriangle, TrendingUp, Users, FileText, AlertCircle
+  DollarSign, BarChart2, TrendingUp, Users, FileText
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 
 const OverviewTab: React.FC = () => {
-  const { students, pendingApplications, businessMetrics, trades, fetchBusinessMetrics, studentPenaltiesData, fetchStudentPenaltiesData, penaltyTrendsData, fetchPenaltyTrendsData, setActiveTab } = useAdminPortal();
+  const { students, businessMetrics, trades, fetchBusinessMetrics, studentPenaltiesData, fetchStudentPenaltiesData, penaltyTrendsData, fetchPenaltyTrendsData, setActiveTab } = useAdminPortal();
   
   // Fetch business metrics, student penalties, and penalty trends when component mounts
   useEffect(() => {
@@ -20,8 +20,6 @@ const OverviewTab: React.FC = () => {
     // Add safety check for students array
     const safeStudents = students && Array.isArray(students) ? students : [];
     const totalStudents = safeStudents.length;
-    const atRiskStudents = safeStudents.filter(s => s && s.status === 'at-risk').length;
-    const pendingApps = pendingApplications && Array.isArray(pendingApplications) ? pendingApplications.length : 0;
     
     // Calculate total P&L from trade data
     const totalPnL = trades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
@@ -35,22 +33,17 @@ const OverviewTab: React.FC = () => {
     const totalVolume = totalTrades;
     
     // Use business metrics for more accurate data if available
-    const mrr = businessMetrics?.mrr || 0;
     const totalRevenue = businessMetrics?.totalRevenue || 0;
     
     // Calculate more realistic percentage changes with bounds
     // Using smaller baseline values to avoid extreme percentages
     const baselineTotalStudents = Math.max(1, totalStudents - 5); // Slightly less than current
-    const baselineAtRiskStudents = Math.max(1, atRiskStudents + 1); // Baseline higher to show improvement
-    const baselinePendingApps = Math.max(1, pendingApps + 1); // Baseline higher to show improvement
     const baselineTotalPnL = Math.max(1, totalPnL - 100); // Slightly less than current
     const baselineAvgWinRate = Math.max(1, avgWinRate - 5); // Slightly less than current
     const baselineTotalVolume = Math.max(1, totalVolume - 50); // Slightly less than current
     
     // Calculate percentage changes with bounds to prevent extreme values
     const studentChange = totalStudents > 0 ? Math.min(100, Math.max(-100, Math.round(((totalStudents - baselineTotalStudents) / baselineTotalStudents) * 100))) : 0;
-    const atRiskChange = atRiskStudents > 0 ? Math.min(100, Math.max(-100, Math.round(((atRiskStudents - baselineAtRiskStudents) / baselineAtRiskStudents) * 100))) : 0;
-    const pendingChange = pendingApps > 0 ? Math.min(100, Math.max(-100, Math.round(((pendingApps - baselinePendingApps) / baselinePendingApps) * 100))) : 0;
     const pnlChange = totalRevenue > 0 ? Math.min(100, Math.max(-100, Math.round(((totalPnL - baselineTotalPnL) / baselineTotalPnL) * 100))) : 0;
     const winRateChange = avgWinRate > 0 ? Math.min(100, Math.max(-100, avgWinRate - baselineAvgWinRate)) : 0;
     const volumeChange = totalVolume > 0 ? Math.min(100, Math.max(-100, Math.round(((totalVolume - baselineTotalVolume) / baselineTotalVolume) * 100))) : 0;
@@ -61,18 +54,6 @@ const OverviewTab: React.FC = () => {
         value: totalStudents.toLocaleString(), 
         change: `${studentChange >= 0 ? '+' : ''}${studentChange}%`, 
         icon: Users 
-      },
-      { 
-        title: 'At-Risk Students', 
-        value: atRiskStudents.toLocaleString(), 
-        change: `${atRiskChange >= 0 ? '+' : ''}${atRiskChange}%`, 
-        icon: AlertTriangle 
-      },
-      { 
-        title: 'Pending Applications', 
-        value: pendingApps.toLocaleString(), 
-        change: `${pendingChange >= 0 ? '+' : ''}${pendingChange}%`, 
-        icon: FileText 
       },
       { 
         title: 'Total P&L', 
@@ -93,13 +74,12 @@ const OverviewTab: React.FC = () => {
         icon: TrendingUp 
       },
     ];
-  }, [students, pendingApplications, businessMetrics, trades]);
+  }, [students, businessMetrics, trades]);
 
   // Generate recent activities based on real data
   const recentActivities = useMemo(() => {
     // Add safety check for students array
     const safeStudents = students && Array.isArray(students) ? students : [];
-    const safePendingApps = pendingApplications && Array.isArray(pendingApplications) ? pendingApplications : [];
     
     // Create activities from student data
     const activities = [];
@@ -125,29 +105,8 @@ const OverviewTab: React.FC = () => {
         });
       });
     
-    // Add recent applications
-    safePendingApps
-      .filter(app => app && app.joinedDate)
-      .sort((a, b) => new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime())
-      .slice(0, 2)
-      .forEach((app, index) => {
-        const joinDate = new Date(app.joinedDate);
-        const now = new Date();
-        const hoursAgo = Math.floor((now.getTime() - joinDate.getTime()) / (1000 * 60 * 60));
-        const timeText = hoursAgo < 24 
-          ? `${hoursAgo} hours ago` 
-          : `${Math.floor(hoursAgo / 24)} days ago`;
-          
-        activities.push({
-          id: `app-${app.id || index}`,
-          user: app.name || 'Unknown Applicant',
-          action: 'New Application',
-          time: timeText
-        });
-      });
-    
     return activities;
-  }, [students, pendingApplications]);
+  }, [students]);
 
   // Calculate P&L by student
   const pnlByStudent = useMemo(() => {
@@ -211,7 +170,7 @@ const OverviewTab: React.FC = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
           return (
