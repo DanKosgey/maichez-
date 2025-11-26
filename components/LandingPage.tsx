@@ -365,6 +365,7 @@ const MarketVibeVisualization: React.FC<{ vibe: 'bull' | 'bear' }> = ({ vibe }) 
             ? 'inset 0 0 40px rgba(6,182,212,0.4), 0 0 40px rgba(6,182,212,0.3)'
             : 'inset 0 0 40px rgba(239,68,68,0.4), 0 0 40px rgba(239,68,68,0.3)'
         }}
+        initial={false}
       />
       
       {/* New Trading Visualization */}
@@ -680,8 +681,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               {/* Shine effect */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                initial={{ x: '-100%' }}
-                animate={{ x: '100%' }}
+                initial={{ x: '-100%', opacity: 0 }}
+                animate={{ x: '100%', opacity: [0, 0.3, 0] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 1 }}
               />
             </motion.div>
@@ -1083,6 +1084,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               repeat: Infinity,
               ease: "linear"
             }}
+            initial={false}
             style={{
               backgroundImage: `radial-gradient(circle at 20% 80%, rgba(6,182,212,0.3) 0%, transparent 50%),
                               radial-gradient(circle at 80% 20%, rgba(239,68,68,0.2) 0%, transparent 50%),
