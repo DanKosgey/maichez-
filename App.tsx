@@ -305,11 +305,19 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error during logout:', error);
-        // Even if there's an error, still clear the user state and redirect
+      // Check if there's an active session before attempting to sign out
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Only attempt to sign out if there's an active session
+      if (session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('Error during logout:', error);
+          // Even if there's an error, still clear the user state and redirect
+        }
       }
+      
+      // Clear user state and redirect regardless of session status
       setUser(null);
       setViewState('landing');
       setPortalView('dashboard');

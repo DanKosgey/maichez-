@@ -203,26 +203,6 @@ const OverviewTab: React.FC = () => {
       .slice(0, 5); // Top 5 students
   }, [studentPenaltiesData]);
 
-  // Format penalty trends data for the chart
-  const formattedPenaltyTrendsData = useMemo(() => {
-    const data = (penaltyTrendsData || [])
-      .map((item: any) => ({
-        date: item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown',
-        rejected: item.rejected || 0,
-        warning: item.warning || 0,
-        total: item.total || 0
-      }))
-      .sort((a, b) => {
-        // Sort by date if possible
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        return isNaN(dateA) || isNaN(dateB) ? 0 : dateA - dateB;
-      });
-    
-    console.log('Formatted penalty trends data:', data);
-    return data;
-  }, [penaltyTrendsData]);
-
   return (
     <div className="space-y-8 animate-slide-up">
       <div>
@@ -326,90 +306,6 @@ const OverviewTab: React.FC = () => {
           ) : (
             <div className="text-center py-8 text-gray-400">
               No trade data available
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Penalty Trends Chart */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-red-400" />
-          Penalty Trends Over Time
-        </h3>
-        <div className="h-80">
-          {formattedPenaltyTrendsData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={formattedPenaltyTrendsData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#94a3b8" 
-                  fontSize={12}
-                  tick={{ fill: '#94a3b8' }}
-                />
-                <YAxis 
-                  stroke="#94a3b8" 
-                  fontSize={12}
-                  tick={{ fill: '#94a3b8' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1f2937', 
-                    border: '1px solid #475569', 
-                    borderRadius: '8px',
-                    color: '#fff'
-                  }} 
-                  formatter={(value, name) => [
-                    value, 
-                    name === 'rejected' ? 'Rejected Trades' : 
-                    name === 'warning' ? 'Warning Trades' : 
-                    'Total Penalties'
-                  ]}
-                  labelStyle={{ color: '#fff', fontWeight: 'bold' }}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="total" 
-                  name="Total Penalties" 
-                  stroke="#ef4444" 
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="rejected" 
-                  name="Rejected Trades" 
-                  stroke="#dc2626" 
-                  strokeWidth={2}
-                  strokeDasharray="3 3"
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="warning" 
-                  name="Warning Trades" 
-                  stroke="#f59e0b" 
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-400">
-              No penalty trend data available
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-gray-500 text-sm mt-2">
-                  Debug: penaltyTrendsData length: {penaltyTrendsData?.length || 0}
-                </div>
-              )}
             </div>
           )}
         </div>
