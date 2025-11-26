@@ -9,6 +9,16 @@ interface UnderReviewPageProps {
 const UnderReviewPage: React.FC<UnderReviewPageProps> = ({ userTier, onLogout }) => {
   const isFreeTier = userTier === 'free' || userTier === 'foundation';
   
+  const handleLogout = () => {
+    try {
+      onLogout();
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Redirect to landing page even if there's an error
+      window.location.hash = '/';
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white flex items-center justify-center p-4 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -84,7 +94,7 @@ const UnderReviewPage: React.FC<UnderReviewPageProps> = ({ userTier, onLogout })
           </button>
           
           <button 
-            onClick={onLogout}
+            onClick={handleLogout}
             className="flex-1 bg-gradient-to-r from-gray-700 to-gray-900 text-white font-black text-xl py-5 rounded-xl hover:from-gray-600 hover:to-gray-800 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg shadow-gray-900/30 hover:shadow-gray-900/50 transform hover:scale-[1.02] border border-gray-700"
           >
             Logout <MessageCircle className="h-6 w-6" />

@@ -304,10 +304,22 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setViewState('landing');
-    setPortalView('dashboard');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error during logout:', error);
+        // Even if there's an error, still clear the user state and redirect
+      }
+      setUser(null);
+      setViewState('landing');
+      setPortalView('dashboard');
+    } catch (error) {
+      console.error('Unexpected error during logout:', error);
+      // Still clear the user state and redirect even if there's an unexpected error
+      setUser(null);
+      setViewState('landing');
+      setPortalView('dashboard');
+    }
   };
 
   const handleApplicationSubmit = (data: any) => {
