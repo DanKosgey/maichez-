@@ -17,12 +17,12 @@ begin
             p.full_name,
             p.email,
             p.subscription_tier,
-            count(*) filter (where je.validation_result = 'rejected') as rejected_count,
-            count(*) filter (where je.validation_result = 'warning') as warning_count
+            count(case when je.validation_result = 'rejected' then 1 end) as rejected_count,
+            count(case when je.validation_result = 'warning' then 1 end) as warning_count
         from profiles p
-        left join journal_entries je on p.id = je.user_id
+        left join journal_entries je on p.id = je.user_id 
+            and je.validation_result in ('rejected', 'warning')
         where p.role = 'student'
-        and je.validation_result in ('rejected', 'warning')
         group by p.id, p.full_name, p.email, p.subscription_tier
     )
     select 
@@ -30,12 +30,12 @@ begin
         coalesce(sp.full_name, sp.email, 'Unknown') as name,
         sp.email,
         sp.subscription_tier as tier,
-        coalesce(sp.rejected_count, 0) as rejected_count,
-        coalesce(sp.warning_count, 0) as warning_count,
-        (coalesce(sp.rejected_count, 0) + coalesce(sp.warning_count, 0)) as total_penalties
+        sp.rejected_count,
+        sp.warning_count,
+        (sp.rejected_count + sp.warning_count) as total_penalties
     from student_penalties sp
-    where (coalesce(sp.rejected_count, 0) + coalesce(sp.warning_count, 0)) > 0
-    order by (coalesce(sp.rejected_count, 0) + coalesce(sp.warning_count, 0)) desc
+    where (sp.rejected_count + sp.warning_count) > 0
+    order by (sp.rejected_count + sp.warning_count) desc
     limit 20;
 end;
 $$ language plpgsql;

@@ -216,9 +216,8 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     if (!isValidUuid || !currentUser.id) return; // Added check for currentUser.id
     
     try {
-      // Since there's no getPreferences function, we'll skip this for now
-      // You can implement this function later if needed
-      console.log('Notification preferences loading skipped - function not implemented');
+      const preferences = await notificationService.getPreferences(currentUser.id);
+      setNotificationPreferences(preferences);
     } catch (err) {
       console.error('Error loading notification preferences:', err);
     }

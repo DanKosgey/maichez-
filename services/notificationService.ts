@@ -401,5 +401,24 @@ export const notificationService = {
       console.error('Error updating notification preferences:', error);
       return false;
     }
+  },
+
+  // Get notification preferences
+  async getPreferences(userId: string): Promise<any | null> {
+    try {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('profile_id', userId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching notification preferences:', error);
+      return null;
+    }
   }
 };
+
+export default notificationService;

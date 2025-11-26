@@ -1,9 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Log environment variables for debugging (remove in production)
-console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
-console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY);
-
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 // Use VITE_SUPABASE_ANON_KEY instead of VITE_SUPABASE_PUBLISHABLE_KEY
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;

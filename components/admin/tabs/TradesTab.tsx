@@ -6,10 +6,16 @@ const TradesTab: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPair, setFilterPair] = useState('all');
   const [filterOutcome, setFilterOutcome] = useState('all');
+  const [filterStrategy, setFilterStrategy] = useState('all');
   
   // Get unique pairs for filter dropdown
   const uniquePairs = useMemo(() => {
     return Array.from(new Set(trades.map(t => t.pair).filter(Boolean)));
+  }, [trades]);
+
+  // Get unique strategies for filter dropdown
+  const uniqueStrategies = useMemo(() => {
+    return Array.from(new Set(trades.map(t => t.strategy).filter(Boolean)));
   }, [trades]);
 
   // Transform trade data to match the table structure
@@ -25,16 +31,21 @@ const TradesTab: React.FC = () => {
       status: trade.status || '',
       pnl: trade.pnl || 0,
       date: trade.date ? new Date(trade.date).toLocaleDateString() : '',
-      notes: trade.notes || ''
+      notes: trade.notes || '',
+      strategy: trade.strategy || 'N/A',
+      confidence: trade.confidenceLevel || 'N/A',
+      reviewStatus: trade.adminReviewStatus || 'N/A'
     }));
   }, [trades]);
 
   const filteredTrades = tableData.filter(trade => 
     (trade.student.toLowerCase().includes(searchTerm.toLowerCase()) ||
     trade.pair.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    trade.type.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    trade.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    trade.strategy.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (filterPair === 'all' || trade.pair === filterPair) &&
-    (filterOutcome === 'all' || trade.status === filterOutcome)
+    (filterOutcome === 'all' || trade.status === filterOutcome) &&
+    (filterStrategy === 'all' || trade.strategy === filterStrategy)
   );
 
   // Calculate trade analytics
@@ -67,6 +78,15 @@ const TradesTab: React.FC = () => {
     switch (type.toLowerCase()) {
       case 'buy': return 'bg-blue-500/20 text-blue-400';
       case 'sell': return 'bg-purple-500/20 text-purple-400';
+      default: return 'bg-gray-500/20 text-gray-400';
+    }
+  };
+
+  const getReviewStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'reviewed': return 'bg-green-500/20 text-green-400';
+      case 'flagged': return 'bg-red-500/20 text-red-400';
+      case 'pending': return 'bg-yellow-500/20 text-yellow-400';
       default: return 'bg-gray-500/20 text-gray-400';
     }
   };
@@ -135,7 +155,7 @@ const TradesTab: React.FC = () => {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search trades by student, pair, or type..."
+              placeholder="Search trades by student, pair, type, or strategy..."
               className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-trade-neon focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -161,6 +181,16 @@ const TradesTab: React.FC = () => {
             <option value="loss">Losses</option>
             <option value="breakeven">Breakeven</option>
           </select>
+          <select 
+            value={filterStrategy} 
+            onChange={e => setFilterStrategy(e.target.value)} 
+            className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-trade-neon outline-none"
+          >
+            <option value="all">All Strategies</option>
+            {uniqueStrategies.map(strategy => (
+              <option key={strategy} value={strategy}>{strategy}</option>
+            ))}
+          </select>
         </div>
 
         {/* Trades Table */}
@@ -175,6 +205,9 @@ const TradesTab: React.FC = () => {
                 <th className="pb-4 font-medium">SL</th>
                 <th className="pb-4 font-medium">TP</th>
                 <th className="pb-4 font-medium">Status</th>
+                <th className="pb-4 font-medium">Strategy</th>
+                <th className="pb-4 font-medium">Confidence</th>
+                <th className="pb-4 font-medium">Review Status</th>
                 <th className="pb-4 font-medium">PnL</th>
                 <th className="pb-4 font-medium">Date</th>
                 <th className="pb-4 font-medium">Actions</th>
@@ -198,6 +231,13 @@ const TradesTab: React.FC = () => {
                   <td className="py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(trade.status)}`}>
                       {trade.status}
+                    </span>
+                  </td>
+                  <td className="py-4 text-gray-400">{trade.strategy}</td>
+                  <td className="py-4 text-gray-400">{trade.confidence}</td>
+                  <td className="py-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getReviewStatusColor(trade.reviewStatus)}`}>
+                      {trade.reviewStatus}
                     </span>
                   </td>
                   <td className={`py-4 font-medium ${trade.pnl > 0 ? 'text-green-400' : 'text-red-400'}`}>

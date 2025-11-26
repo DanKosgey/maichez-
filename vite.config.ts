@@ -5,11 +5,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     
-    // Log environment variables for debugging
-    console.log('Loaded environment variables:');
-    console.log('VITE_SUPABASE_URL:', env.VITE_SUPABASE_URL);
-    console.log('VITE_SUPABASE_ANON_KEY:', env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
-    
     return {
       server: {
         port: 3000,

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, CourseModule } from '../../types';
 import { 
   LayoutDashboard, Users, Layers, PieChart as PieIcon, 
-  BookOpen, Zap, DollarSign, CreditCard, BarChart3, ShieldAlert, UserCog 
+  BookOpen, Zap, DollarSign, CreditCard, BarChart3, ShieldAlert, UserCog
 } from 'lucide-react';
 import { useAdminPortal } from './AdminPortalContext';
 import AdminHeader from './AdminHeader';

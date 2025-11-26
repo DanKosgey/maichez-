@@ -1,15 +1,18 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
 import { 
-  DollarSign, BarChart2, AlertTriangle, TrendingUp, Users, FileText 
+  DollarSign, BarChart2, AlertTriangle, TrendingUp, Users, FileText, AlertCircle
 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 
 const OverviewTab: React.FC = () => {
-  const { students, pendingApplications, businessMetrics, fetchBusinessMetrics } = useAdminPortal();
+  const { students, pendingApplications, businessMetrics, trades, fetchBusinessMetrics, studentPenaltiesData, fetchStudentPenaltiesData, penaltyTrendsData, fetchPenaltyTrendsData } = useAdminPortal();
   
-  // Fetch business metrics when component mounts
+  // Fetch business metrics, student penalties, and penalty trends when component mounts
   useEffect(() => {
     fetchBusinessMetrics();
+    fetchStudentPenaltiesData();
+    fetchPenaltyTrendsData();
   }, []);
   
   // Calculate metrics based on real data
@@ -20,17 +23,16 @@ const OverviewTab: React.FC = () => {
     const atRiskStudents = safeStudents.filter(s => s && s.status === 'at-risk').length;
     const pendingApps = pendingApplications && Array.isArray(pendingApplications) ? pendingApplications.length : 0;
     
-    // Calculate total P&L
-    const totalPnL = safeStudents.reduce((sum, student) => sum + (student && student.stats ? (student.stats.totalPnL || 0) : 0), 0);
+    // Calculate total P&L from trade data
+    const totalPnL = trades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
     
-    // Calculate average win rate
-    const validStudents = safeStudents.filter(s => s && s.stats && s.stats.winRate !== undefined && s.stats.winRate !== null);
-    const avgWinRate = validStudents.length > 0 
-      ? Math.round(validStudents.reduce((sum, student) => sum + (student && student.stats ? (student.stats.winRate || 0) : 0), 0) / validStudents.length)
-      : 0;
+    // Calculate average win rate from trade data
+    const totalTrades = trades.length;
+    const wins = trades.filter(t => t.status === 'win').length;
+    const avgWinRate = totalTrades > 0 ? Math.round((wins / totalTrades) * 100) : 0;
     
     // Calculate total volume (number of trades)
-    const totalVolume = safeStudents.reduce((sum, student) => sum + (student && student.stats ? (student.stats.tradesCount || 0) : 0), 0);
+    const totalVolume = totalTrades;
     
     // Use business metrics for more accurate data if available
     const mrr = businessMetrics?.mrr || 0;
@@ -91,7 +93,7 @@ const OverviewTab: React.FC = () => {
         icon: TrendingUp 
       },
     ];
-  }, [students, pendingApplications, businessMetrics]);
+  }, [students, pendingApplications, businessMetrics, trades]);
 
   // Generate recent activities based on real data
   const recentActivities = useMemo(() => {
@@ -102,28 +104,124 @@ const OverviewTab: React.FC = () => {
     // Create activities from student data
     const activities = [];
     
-    // Add recent student joins
-    safeStudents.slice(0, 3).forEach((student, index) => {
-      activities.push({
-        id: `join-${student && student.id ? student.id : index}`,
-        user: student && student.name ? student.name : 'Unknown User',
-        action: 'Joined Platform',
-        time: student && student.joinedDate ? `${Math.floor((Date.now() - new Date(student.joinedDate).getTime()) / (1000 * 60 * 60))} hours ago` : 'Recently'
+    // Add recent student joins with better date handling
+    safeStudents
+      .filter(student => student && student.joinedDate)
+      .sort((a, b) => new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime())
+      .slice(0, 3)
+      .forEach((student, index) => {
+        const joinDate = new Date(student.joinedDate);
+        const now = new Date();
+        const hoursAgo = Math.floor((now.getTime() - joinDate.getTime()) / (1000 * 60 * 60));
+        const timeText = hoursAgo < 24 
+          ? `${hoursAgo} hours ago` 
+          : `${Math.floor(hoursAgo / 24)} days ago`;
+          
+        activities.push({
+          id: `join-${student.id || index}`,
+          user: student.name || 'Unknown User',
+          action: 'Joined Platform',
+          time: timeText
+        });
       });
-    });
     
     // Add recent applications
-    safePendingApps.slice(0, 2).forEach((app, index) => {
-      activities.push({
-        id: `app-${app && app.id ? app.id : index}`,
-        user: app && app.name ? app.name : 'Unknown Applicant',
-        action: 'New Application',
-        time: app && app.joinedDate ? `${Math.floor((Date.now() - new Date(app.joinedDate).getTime()) / (1000 * 60 * 60))} hours ago` : 'Recently'
+    safePendingApps
+      .filter(app => app && app.joinedDate)
+      .sort((a, b) => new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime())
+      .slice(0, 2)
+      .forEach((app, index) => {
+        const joinDate = new Date(app.joinedDate);
+        const now = new Date();
+        const hoursAgo = Math.floor((now.getTime() - joinDate.getTime()) / (1000 * 60 * 60));
+        const timeText = hoursAgo < 24 
+          ? `${hoursAgo} hours ago` 
+          : `${Math.floor(hoursAgo / 24)} days ago`;
+          
+        activities.push({
+          id: `app-${app.id || index}`,
+          user: app.name || 'Unknown Applicant',
+          action: 'New Application',
+          time: timeText
+        });
       });
-    });
     
     return activities;
   }, [students, pendingApplications]);
+
+  // Calculate P&L by student
+  const pnlByStudent = useMemo(() => {
+    // Group trades by student
+    const tradesByStudent: Record<string, any[]> = {};
+    
+    trades.forEach(trade => {
+      const studentId = trade.studentId;
+      if (!tradesByStudent[studentId]) {
+        tradesByStudent[studentId] = [];
+      }
+      tradesByStudent[studentId].push(trade);
+    });
+    
+    // Calculate P&L for each student
+    const studentPnLData = Object.entries(tradesByStudent).map(([studentId, studentTrades]) => {
+      const totalPnL = studentTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
+      const winTrades = studentTrades.filter(trade => trade.status === 'win').length;
+      const lossTrades = studentTrades.filter(trade => trade.status === 'loss').length;
+      const totalTrades = studentTrades.length;
+      
+      // Find student info
+      const student = students.find(s => s.id === studentId);
+      
+      return {
+        id: studentId,
+        name: student?.name || 'Unknown Student',
+        tier: student?.tier || 'free',
+        totalPnL: totalPnL,
+        winTrades: winTrades,
+        lossTrades: lossTrades,
+        totalTrades: totalTrades,
+        winRate: totalTrades > 0 ? Math.round((winTrades / totalTrades) * 100) : 0
+      };
+    });
+    
+    // Sort by absolute P&L value (highest absolute value first)
+    return studentPnLData.sort((a, b) => Math.abs(b.totalPnL) - Math.abs(a.totalPnL));
+  }, [trades, students]);
+
+  // Format penalty data for the breakdown
+  const formattedPenaltyData = useMemo(() => {
+    return (studentPenaltiesData || [])
+      .filter((item: any) => item.total_penalties > 0) // Only show students with penalties
+      .map((item: any) => ({
+        id: item.id,
+        name: item.name || item.email || 'Unknown Student',
+        tier: item.tier || 'free',
+        totalPenalties: item.total_penalties || 0,
+        rejected: item.rejected_count || 0,
+        warning: item.warning_count || 0
+      }))
+      .slice(0, 5); // Top 5 students
+  }, [studentPenaltiesData]);
+
+  // Format penalty trends data for the chart
+  const formattedPenaltyTrendsData = useMemo(() => {
+    const data = (penaltyTrendsData || [])
+      .map((item: any) => ({
+        date: item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Unknown',
+        rejected: item.rejected || 0,
+        warning: item.warning || 0,
+        total: item.total || 0
+      }))
+      .sort((a, b) => {
+        // Sort by date if possible
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return isNaN(dateA) || isNaN(dateB) ? 0 : dateA - dateB;
+      });
+    
+    console.log('Formatted penalty trends data:', data);
+    return data;
+  }, [penaltyTrendsData]);
 
   return (
     <div className="space-y-8 animate-slide-up">
@@ -155,24 +253,165 @@ const OverviewTab: React.FC = () => {
 
       {/* P&L Breakdown Chart */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 text-white">P&L Breakdown</h3>
+        <h3 className="text-xl font-bold mb-6 text-white">Student P&L Performance</h3>
+        <div className="h-80 mb-6">
+          {pnlByStudent.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={pnlByStudent.slice(0, 10)}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
+                <XAxis 
+                  type="number" 
+                  stroke="#94a3b8" 
+                  fontSize={12}
+                  tick={{ fill: '#94a3b8' }}
+                  tickFormatter={(value) => `$${value}`}
+                />
+                <YAxis 
+                  type="category" 
+                  dataKey="name" 
+                  stroke="#94a3b8" 
+                  fontSize={12}
+                  tick={{ fill: '#94a3b8' }}
+                  width={90}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1f2937', 
+                    border: '1px solid #475569', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                  formatter={(value, name) => [
+                    `$${parseFloat(value.toString()).toFixed(2)}`, 
+                    'Total P&L'
+                  ]}
+                  labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+                />
+                <Bar 
+                  dataKey="totalPnL" 
+                  name="Total P&L" 
+                  fill="#00ff94" 
+                  radius={[0, 4, 4, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              No trade data available
+            </div>
+          )}
+        </div>
+        
+        {/* Student P&L Details */}
         <div className="space-y-4">
-          {students && Array.isArray(students) && students
-            .filter(student => student && student.stats?.totalPnL !== undefined && student.stats?.totalPnL !== 0)
-            .sort((a, b) => (b.stats?.totalPnL || 0) - (a.stats?.totalPnL || 0))
-            .slice(0, 5)
-            .map((student) => (
+          {pnlByStudent.length > 0 ? (
+            pnlByStudent.slice(0, 5).map((student) => (
               <div key={student.id} className="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl border border-gray-700/30 hover:bg-gray-900 transition-colors">
-                <div>
-                  <h4 className="font-medium text-white">{student.name || 'Unknown Student'}</h4>
-                  <p className="text-gray-400 text-sm">{student.tier || 'free'} tier</p>
+                <div className="flex-1">
+                  <h4 className="font-medium text-white">{student.name}</h4>
+                  <p className="text-gray-400 text-sm">{student.tier} tier • {student.winTrades}W / {student.lossTrades}L • {student.winRate}% win rate</p>
                 </div>
-                <span className={`font-bold ${(student.stats?.totalPnL || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  ${(student.stats?.totalPnL || 0).toLocaleString()}
-                </span>
+                <div className="text-right">
+                  <span className={`font-bold text-lg ${student.totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    ${student.totalPnL.toFixed(2)}
+                  </span>
+                  <p className="text-gray-400 text-sm">{student.totalTrades} trades</p>
+                </div>
               </div>
             ))
-          }
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              No trade data available
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Penalty Trends Chart */}
+      <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-xl">
+        <h3 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-red-400" />
+          Penalty Trends Over Time
+        </h3>
+        <div className="h-80">
+          {formattedPenaltyTrendsData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={formattedPenaltyTrendsData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#94a3b8" 
+                  fontSize={12}
+                  tick={{ fill: '#94a3b8' }}
+                />
+                <YAxis 
+                  stroke="#94a3b8" 
+                  fontSize={12}
+                  tick={{ fill: '#94a3b8' }}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1f2937', 
+                    border: '1px solid #475569', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }} 
+                  formatter={(value, name) => [
+                    value, 
+                    name === 'rejected' ? 'Rejected Trades' : 
+                    name === 'warning' ? 'Warning Trades' : 
+                    'Total Penalties'
+                  ]}
+                  labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="total" 
+                  name="Total Penalties" 
+                  stroke="#ef4444" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="rejected" 
+                  name="Rejected Trades" 
+                  stroke="#dc2626" 
+                  strokeWidth={2}
+                  strokeDasharray="3 3"
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="warning" 
+                  name="Warning Trades" 
+                  stroke="#f59e0b" 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400">
+              No penalty trend data available
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-gray-500 text-sm mt-2">
+                  Debug: penaltyTrendsData length: {penaltyTrendsData?.length || 0}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

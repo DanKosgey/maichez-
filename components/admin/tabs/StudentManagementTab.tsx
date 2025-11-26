@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
 import { StudentProfile } from '../../../types';
 import { 
@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 const StudentManagementTab: React.FC = () => {
-  const { students, refreshData, updateStudentProfile, deleteStudentProfile } = useAdminPortal();
+  const { students, trades, refreshData, updateStudentProfile, deleteStudentProfile } = useAdminPortal();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTier, setFilterTier] = useState('all');
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
@@ -15,8 +15,34 @@ const StudentManagementTab: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Enhance student data with trade information
+  const enhancedStudents = useMemo(() => {
+    return students.map(student => {
+      // Find trades for this student
+      const studentTrades = trades.filter(trade => trade.studentId === student.id);
+      
+      // Calculate additional trade stats
+      const totalTrades = studentTrades.length;
+      const wins = studentTrades.filter(t => t.status === 'win').length;
+      const losses = studentTrades.filter(t => t.status === 'loss').length;
+      const winRate = totalTrades > 0 ? Math.round((wins / totalTrades) * 100) : 0;
+      const totalPnL = studentTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
+      
+      return {
+        ...student,
+        stats: {
+          ...student.stats,
+          tradesCount: totalTrades,
+          winRate,
+          totalPnL
+        },
+        recentTrades: studentTrades.slice(0, 3) // Last 3 trades
+      };
+    });
+  }, [students, trades]);
+
   // Transform StudentProfile data to match the table structure
-  const tableData = students.map(student => ({
+  const tableData = enhancedStudents.map(student => ({
     id: student.id,
     name: student.name || 'Unknown',
     email: student.email || '',
@@ -26,7 +52,8 @@ const StudentManagementTab: React.FC = () => {
     trades: student.stats?.tradesCount || 0,
     winRate: `${student.stats?.winRate || 0}%`,
     totalPnL: student.stats?.totalPnL || 0,
-    avgRiskReward: student.stats?.avgRiskReward || 0
+    avgRiskReward: student.stats?.avgRiskReward || 0,
+    recentTrades: student.recentTrades || []
   }));
 
   const filteredStudents = tableData.filter(student => 

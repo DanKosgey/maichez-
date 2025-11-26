@@ -35,8 +35,8 @@ export const fetchAllStudents = async (): Promise<StudentProfile[]> => {
 // Function to fetch all trades with student info for admin portal
 export const fetchAllTrades = async (): Promise<(TradeEntry & { studentId: string; studentName: string; studentTier: string })[]> => {
   try {
-    // Using RPC to call our custom function
-    const { data, error } = await supabase.rpc('get_all_trades_for_admin');
+    // Using RPC to call our enhanced custom function
+    const { data, error } = await supabase.rpc('get_all_trades_for_admin_enhanced');
     
     if (error) throw error;
     
@@ -53,6 +53,11 @@ export const fetchAllTrades = async (): Promise<(TradeEntry & { studentId: strin
       notes: trade.notes,
       date: trade.date,
       pnl: trade.pnl,
+      strategy: trade.strategy,
+      confidenceLevel: trade.confidence_level,
+      adminReviewStatus: trade.admin_review_status,
+      reviewTimestamp: trade.review_timestamp,
+      tags: trade.tags,
       studentId: trade.user_id,
       studentName: trade.student_name,
       studentTier: trade.student_tier
@@ -266,6 +271,39 @@ export const fetchStudentPenalties = async () => {
     return data || [];
   } catch (error: any) {
     console.error('Error fetching student penalties data:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
+    // Return empty array as fallback
+    return [];
+  }
+};
+
+// Function to fetch penalty trends data
+export const fetchPenaltyTrends = async () => {
+  try {
+    console.log('Fetching penalty trends data...');
+    const { data, error } = await supabase.rpc('get_penalty_trends');
+    
+    if (error) {
+      console.error('RPC Error in fetchPenaltyTrends:', error);
+      throw error;
+    }
+    
+    console.log('Penalty trends data:', data);
+    
+    // Convert to the format expected by the UI
+    return data.map((item: any) => ({
+      date: item.date_period || 'Unknown',
+      rejected: parseInt(item.rejected_count) || 0,
+      warning: parseInt(item.warning_count) || 0,
+      total: parseInt(item.total_penalties) || 0
+    }));
+  } catch (error: any) {
+    console.error('Error fetching penalty trends data:', error);
     console.error('Error details:', {
       code: error.code,
       message: error.message,
