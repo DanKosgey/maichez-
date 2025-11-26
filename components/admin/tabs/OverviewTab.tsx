@@ -14,22 +14,23 @@ const OverviewTab: React.FC = () => {
   
   // Calculate metrics based on real data
   const metrics = useMemo(() => {
-    const totalStudents = students.length;
-    const activeStudents = students.filter(s => s.status === 'active').length;
-    const atRiskStudents = students.filter(s => s.status === 'at-risk').length;
-    const pendingApps = pendingApplications.length;
+    // Add safety check for students array
+    const safeStudents = students && Array.isArray(students) ? students : [];
+    const totalStudents = safeStudents.length;
+    const atRiskStudents = safeStudents.filter(s => s && s.status === 'at-risk').length;
+    const pendingApps = pendingApplications && Array.isArray(pendingApplications) ? pendingApplications.length : 0;
     
     // Calculate total P&L
-    const totalPnL = students.reduce((sum, student) => sum + (student.stats?.totalPnL || 0), 0);
+    const totalPnL = safeStudents.reduce((sum, student) => sum + (student && student.stats ? (student.stats.totalPnL || 0) : 0), 0);
     
     // Calculate average win rate
-    const validStudents = students.filter(s => s.stats?.winRate !== undefined && s.stats?.winRate !== null);
+    const validStudents = safeStudents.filter(s => s && s.stats && s.stats.winRate !== undefined && s.stats.winRate !== null);
     const avgWinRate = validStudents.length > 0 
-      ? Math.round(validStudents.reduce((sum, student) => sum + (student.stats?.winRate || 0), 0) / validStudents.length)
+      ? Math.round(validStudents.reduce((sum, student) => sum + (student && student.stats ? (student.stats.winRate || 0) : 0), 0) / validStudents.length)
       : 0;
     
     // Calculate total volume (number of trades)
-    const totalVolume = students.reduce((sum, student) => sum + (student.stats?.tradesCount || 0), 0);
+    const totalVolume = safeStudents.reduce((sum, student) => sum + (student && student.stats ? (student.stats.tradesCount || 0) : 0), 0);
     
     // Use business metrics for more accurate data if available
     const mrr = businessMetrics?.mrr || 0;
@@ -38,7 +39,6 @@ const OverviewTab: React.FC = () => {
     // Calculate more realistic percentage changes with bounds
     // Using smaller baseline values to avoid extreme percentages
     const baselineTotalStudents = Math.max(1, totalStudents - 5); // Slightly less than current
-    const baselineActiveStudents = Math.max(1, activeStudents - 2);
     const baselineAtRiskStudents = Math.max(1, atRiskStudents + 1); // Baseline higher to show improvement
     const baselinePendingApps = Math.max(1, pendingApps + 1); // Baseline higher to show improvement
     const baselineTotalPnL = Math.max(1, totalPnL - 100); // Slightly less than current
@@ -47,7 +47,6 @@ const OverviewTab: React.FC = () => {
     
     // Calculate percentage changes with bounds to prevent extreme values
     const studentChange = totalStudents > 0 ? Math.min(100, Math.max(-100, Math.round(((totalStudents - baselineTotalStudents) / baselineTotalStudents) * 100))) : 0;
-    const activeChange = activeStudents > 0 ? Math.min(100, Math.max(-100, Math.round(((activeStudents - baselineActiveStudents) / baselineActiveStudents) * 100))) : 0;
     const atRiskChange = atRiskStudents > 0 ? Math.min(100, Math.max(-100, Math.round(((atRiskStudents - baselineAtRiskStudents) / baselineAtRiskStudents) * 100))) : 0;
     const pendingChange = pendingApps > 0 ? Math.min(100, Math.max(-100, Math.round(((pendingApps - baselinePendingApps) / baselinePendingApps) * 100))) : 0;
     const pnlChange = totalRevenue > 0 ? Math.min(100, Math.max(-100, Math.round(((totalPnL - baselineTotalPnL) / baselineTotalPnL) * 100))) : 0;
@@ -59,12 +58,6 @@ const OverviewTab: React.FC = () => {
         title: 'Total Students', 
         value: totalStudents.toLocaleString(), 
         change: `${studentChange >= 0 ? '+' : ''}${studentChange}%`, 
-        icon: Users 
-      },
-      { 
-        title: 'Active Users', 
-        value: activeStudents.toLocaleString(), 
-        change: `${activeChange >= 0 ? '+' : ''}${activeChange}%`, 
         icon: Users 
       },
       { 
@@ -102,26 +95,30 @@ const OverviewTab: React.FC = () => {
 
   // Generate recent activities based on real data
   const recentActivities = useMemo(() => {
+    // Add safety check for students array
+    const safeStudents = students && Array.isArray(students) ? students : [];
+    const safePendingApps = pendingApplications && Array.isArray(pendingApplications) ? pendingApplications : [];
+    
     // Create activities from student data
     const activities = [];
     
     // Add recent student joins
-    students.slice(0, 3).forEach((student, index) => {
+    safeStudents.slice(0, 3).forEach((student, index) => {
       activities.push({
-        id: `join-${student.id}`,
-        user: student.name || 'Unknown User',
+        id: `join-${student && student.id ? student.id : index}`,
+        user: student && student.name ? student.name : 'Unknown User',
         action: 'Joined Platform',
-        time: student.joinedDate ? `${Math.floor((Date.now() - new Date(student.joinedDate).getTime()) / (1000 * 60 * 60))} hours ago` : 'Recently'
+        time: student && student.joinedDate ? `${Math.floor((Date.now() - new Date(student.joinedDate).getTime()) / (1000 * 60 * 60))} hours ago` : 'Recently'
       });
     });
     
     // Add recent applications
-    pendingApplications.slice(0, 2).forEach((app, index) => {
+    safePendingApps.slice(0, 2).forEach((app, index) => {
       activities.push({
-        id: `app-${app.id}`,
-        user: app.name || 'Unknown Applicant',
+        id: `app-${app && app.id ? app.id : index}`,
+        user: app && app.name ? app.name : 'Unknown Applicant',
         action: 'New Application',
-        time: app.joinedDate ? `${Math.floor((Date.now() - new Date(app.joinedDate).getTime()) / (1000 * 60 * 60))} hours ago` : 'Recently'
+        time: app && app.joinedDate ? `${Math.floor((Date.now() - new Date(app.joinedDate).getTime()) / (1000 * 60 * 60))} hours ago` : 'Recently'
       });
     });
     
@@ -136,7 +133,7 @@ const OverviewTab: React.FC = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         {metrics.map((metric, index) => {
           const Icon = metric.icon;
           return (
@@ -160,8 +157,8 @@ const OverviewTab: React.FC = () => {
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-xl">
         <h3 className="text-xl font-bold mb-6 text-white">P&L Breakdown</h3>
         <div className="space-y-4">
-          {students
-            .filter(student => student.stats?.totalPnL !== undefined && student.stats?.totalPnL !== 0)
+          {students && Array.isArray(students) && students
+            .filter(student => student && student.stats?.totalPnL !== undefined && student.stats?.totalPnL !== 0)
             .sort((a, b) => (b.stats?.totalPnL || 0) - (a.stats?.totalPnL || 0))
             .slice(0, 5)
             .map((student) => (

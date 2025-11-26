@@ -345,6 +345,9 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
         tradeSource: formData.tradeSource || 'demo'
       };
 
+      // Ensure manually journalized trades never go through AI validation
+      entryData.validationResult = 'none';
+
       if (editingEntry) {
         // Update existing entry
         const success = await journalService.updateJournalEntry(editingEntry.id, entryData);
@@ -356,11 +359,6 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
         }
       } else {
         // Create new entry
-        // Set default validation result to 'none' if not specified
-        if (!entryData.validationResult) {
-          entryData.validationResult = 'none';
-        }
-
         const result = await journalService.createJournalEntry(entryData, user.id);
         if (result) {
           // The real-time subscription will automatically update the entries list

@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { User, CourseModule } from '../../types';
 import { 
   LayoutDashboard, Users, Layers, PieChart as PieIcon, 
-  FileText, BookOpen, Zap, DollarSign, CreditCard, BarChart3, ShieldAlert 
+  BookOpen, Zap, DollarSign, CreditCard, BarChart3, ShieldAlert, UserCog 
 } from 'lucide-react';
 import { useAdminPortal } from './AdminPortalContext';
 import AdminHeader from './AdminHeader';
 import AdminNavigation from './AdminNavigation';
 import OverviewTab from './tabs/OverviewTab';
 import DirectoryTab from './tabs/DirectoryTab';
+import StudentManagementTab from './tabs/StudentManagementTab';
 import TradesTab from './tabs/TradesTab';
 import AnalyticsTab from './tabs/AnalyticsTab';
-import ApplicationsTab from './tabs/ApplicationsTab';
 import ContentTab from './tabs/ContentTab';
 import RulesTab from './tabs/RulesTab';
 import JournalTab from './tabs/JournalTab';
@@ -47,7 +47,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
 
   const isValidTab = (tab: string): tab is typeof activeTab => {
     return [
-      'overview', 'directory', 'trades', 'analytics', 'applications', 
+      'overview', 'directory', 'trades', 'analytics', 
       'content', 'rules', 'journal', 'admin-analytics', 'settings'
     ].includes(tab);
   };
@@ -58,12 +58,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
         return <OverviewTab />;
       case 'directory':
         return <DirectoryTab />;
+      case 'student-management':
+        return <StudentManagementTab />;
       case 'trades':
         return <TradesTab />;
       case 'analytics':
         return <AnalyticsTab />;
-      case 'applications':
-        return <ApplicationsTab />;
+      // Applications tab removed
       case 'content':
         return <ContentTab user={user} courses={courses} />;
       case 'rules':
@@ -82,9 +83,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
   const tabs = [
     { id: 'overview', label: 'Command Center', icon: LayoutDashboard },
     { id: 'directory', label: 'Directory', icon: Users },
+    { id: 'student-management', label: 'Student Mgmt', icon: UserCog },
     { id: 'trades', label: 'Trade Analysis', icon: Layers },
     { id: 'analytics', label: 'Analytics', icon: PieIcon },
-    { id: 'applications', label: 'Applications', icon: FileText },
     { id: 'content', label: 'Content Mgmt', icon: BookOpen },
     { id: 'rules', label: 'Rule Engine', icon: Zap },
     { id: 'journal', label: 'My Trades', icon: DollarSign },

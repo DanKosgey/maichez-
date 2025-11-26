@@ -4,11 +4,12 @@ import {
   fetchAllStudents as fetchAllStudentsService, 
   fetchAllTrades as fetchAllTradesService, 
   fetchBusinessMetrics as fetchBusinessMetricsService, 
-  fetchPendingApplications as fetchPendingApplicationsService,
   fetchRevenueGrowthData as fetchRevenueGrowthDataService, 
   fetchCourseEnrollmentCounts as fetchCourseEnrollmentCountsService, 
   fetchRuleViolationsData as fetchRuleViolationsDataService,
-  fetchStudentPenalties as fetchStudentPenaltiesService
+  fetchStudentPenalties as fetchStudentPenaltiesService,
+  updateStudentProfile as updateStudentProfileService,
+  deleteStudentProfile as deleteStudentProfileService
 } from '../../services/adminService';
 import { socialMediaService } from '../../services/socialMediaService';
 
@@ -17,7 +18,6 @@ type AdminTab =
   | 'directory' 
   | 'trades' 
   | 'analytics' 
-  | 'applications' 
   | 'content' 
   | 'rules' 
   | 'journal' 
@@ -32,7 +32,6 @@ interface AdminPortalContextType {
   // Data states
   students: StudentProfile[];
   trades: any[];
-  pendingApplications: StudentProfile[];
   communityLinks: CommunityLink[];
   plans: SubscriptionPlan[];
   businessMetrics: any;
@@ -45,7 +44,6 @@ interface AdminPortalContextType {
   // Data fetching functions
   fetchStudents: () => Promise<void>;
   fetchTrades: () => Promise<void>;
-  refreshPendingApplications: () => Promise<void>;
   fetchCommunityLinks: () => Promise<void>;
   fetchPlans: () => Promise<void>;
   fetchBusinessMetrics: () => Promise<void>;
@@ -53,6 +51,9 @@ interface AdminPortalContextType {
   fetchCourseEnrollmentData: () => Promise<void>;
   fetchRuleViolationsData: () => Promise<void>;
   fetchStudentPenaltiesData: () => Promise<void>;
+  // Student management functions
+  updateStudentProfile: (studentId: string, updates: Partial<StudentProfile>) => Promise<void>;
+  deleteStudentProfile: (studentId: string) => Promise<void>;
 }
 
 const AdminPortalContext = createContext<AdminPortalContextType | undefined>(undefined);
@@ -63,7 +64,6 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Data states
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [trades, setTrades] = useState<any[]>([]);
-  const [pendingApplications, setPendingApplications] = useState<StudentProfile[]>([]);
   const [communityLinks, setCommunityLinks] = useState<CommunityLink[]>([]);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [businessMetrics, setBusinessMetrics] = useState<any>({});
@@ -89,7 +89,7 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const isValidTab = (tab: string): tab is AdminTab => {
     return [
-      'overview', 'directory', 'trades', 'analytics', 'applications', 
+      'overview', 'directory', 'trades', 'analytics', 
       'content', 'rules', 'journal', 'admin-analytics', 'settings'
     ].includes(tab);
   };
@@ -101,7 +101,6 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const [
         studentsData,
         tradesData,
-        pendingAppsData,
         linksData,
         plansData,
         metricsData,
@@ -112,7 +111,6 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
       ] = await Promise.all([
         fetchAllStudentsService(),
         fetchAllTradesService(),
-        fetchPendingApplicationsService(),
         socialMediaService.getAllCommunityLinks(),
         socialMediaService.getAllSubscriptionPlans(),
         fetchBusinessMetricsService(),
@@ -124,7 +122,6 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       setStudents(studentsData || []);
       setTrades(tradesData || []);
-      setPendingApplications(pendingAppsData || []);
       setCommunityLinks(linksData || []);
       setPlans(plansData || []);
       setBusinessMetrics(metricsData || {});
@@ -151,6 +148,28 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
+  const updateStudentProfile = async (studentId: string, updates: Partial<StudentProfile>) => {
+    try {
+      await updateStudentProfileService(studentId, updates);
+      // Refresh the student data after update
+      await fetchStudents();
+    } catch (err) {
+      console.error('Error updating student profile:', err);
+      throw err;
+    }
+  };
+
+  const deleteStudentProfile = async (studentId: string) => {
+    try {
+      await deleteStudentProfileService(studentId);
+      // Refresh the student data after deletion
+      await fetchStudents();
+    } catch (err) {
+      console.error('Error deleting student profile:', err);
+      throw err;
+    }
+  };
+
   const fetchTrades = async () => {
     try {
       const tradesData = await fetchAllTradesService();
@@ -160,14 +179,7 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  const refreshPendingApplications = async () => {
-    try {
-      const pendingAppsData = await fetchPendingApplicationsService();
-      setPendingApplications(pendingAppsData || []);
-    } catch (err) {
-      console.error('Error fetching pending applications:', err);
-    }
-  };
+  // refreshPendingApplications function removed
 
   const fetchCommunityLinks = async () => {
     try {
@@ -252,7 +264,6 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Data states
       students,
       trades,
-      pendingApplications,
       communityLinks,
       plans,
       businessMetrics,
@@ -265,14 +276,16 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Data fetching functions
       fetchStudents,
       fetchTrades,
-      refreshPendingApplications,
       fetchCommunityLinks,
       fetchPlans,
       fetchBusinessMetrics,
       fetchRevenueGrowthData,
       fetchCourseEnrollmentData,
       fetchRuleViolationsData,
-      fetchStudentPenaltiesData
+      fetchStudentPenaltiesData,
+      // Student management functions
+      updateStudentProfile,
+      deleteStudentProfile
     }}>
       {children}
     </AdminPortalContext.Provider>

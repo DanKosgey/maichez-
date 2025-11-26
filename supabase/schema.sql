@@ -26,6 +26,14 @@ create policy "Users can update own profile."
   on profiles for update
   using ( auth.uid() = id );
 
+create policy "Admins can update any profile."
+  on profiles for update
+  using ( exists (select 1 from profiles where id = auth.uid() and role = 'admin') );
+
+create policy "Admins can delete any profile."
+  on profiles for delete
+  using ( exists (select 1 from profiles where id = auth.uid() and role = 'admin') );
+
 -- Create a table for journal entries
 create table journal_entries (
   id uuid default uuid_generate_v4() primary key,

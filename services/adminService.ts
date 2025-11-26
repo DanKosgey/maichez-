@@ -704,3 +704,54 @@ export const fetchPendingApplications = async (): Promise<StudentProfile[]> => {
     throw error;
   }
 };
+
+// Function to update a student's profile
+export const updateStudentProfile = async (studentId: string, updates: Partial<StudentProfile>) => {
+  try {
+    console.log('Updating student profile:', studentId, updates);
+    
+    // Map StudentProfile fields to database fields
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.full_name = updates.name;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
+    if (updates.tier !== undefined) dbUpdates.subscription_tier = updates.tier;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(dbUpdates)
+      .eq('id', studentId)
+      .select();
+    
+    if (error) throw error;
+    
+    // Check if any rows were updated
+    if (!data || data.length === 0) {
+      throw new Error('No profile found for the given student ID');
+    }
+    
+    console.log('Student profile updated successfully:', data[0]);
+    return data[0];
+  } catch (error) {
+    console.error('Error updating student profile:', error);
+    throw error;
+  }
+};
+
+// Function to delete a student's profile
+export const deleteStudentProfile = async (studentId: string) => {
+  try {
+    console.log('Deleting student profile:', studentId);
+    
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', studentId);
+    
+    if (error) throw error;
+    console.log('Student profile deleted successfully');
+    return true;
+  } catch (error) {
+    console.error('Error deleting student profile:', error);
+    throw error;
+  }
+};
