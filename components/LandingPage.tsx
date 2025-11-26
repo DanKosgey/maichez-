@@ -380,7 +380,7 @@ const FloatingParticles: React.FC = () => {
       {[...Array(20)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute rounded-full opacity-30 pointer-events-none"
+          className="absolute rounded-full opacity-330 pointer-events-none"
           style={{
             width: Math.random() * 25 + 5,
             height: Math.random() * 25 + 5,
@@ -421,7 +421,7 @@ const AnimatedCounter: React.FC<{ end: number; duration?: number; label: string 
 }) => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, threshold: 0.5 });
+  const inView = useInView(ref, { once: true, amount: 'some' });
 
   useEffect(() => {
     if (inView) {
@@ -611,11 +611,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 whileHover={{ 
                   scale: 1.05, 
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  backgroundColor: '#f8fafc'
+                  backgroundColor: '#1e293b'
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onSelectTier('login')}
-                className="bg-slate-100 border border-slate-200 px-4 py-2 sm:px-6 sm:py-2.5 rounded-xl font-semibold text-sm transition-all"
+                className="bg-slate-800 border border-slate-700 px-4 py-2 sm:px-6 sm:py-2.5 rounded-xl font-semibold text-sm text-white transition-all"
               >
                 Login <ArrowRight className="inline h-4 w-4 ml-1" />
               </motion.button>
@@ -757,11 +757,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               <motion.button
                 whileHover={{ 
                   scale: 1.05, 
-                  boxShadow: '0 8px 30px rgba(6,182,212,0.3)',
+                  boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onSelectTier('signup')}
-                className="group relative px-8 sm:px-12 py-4 sm:py-5 bg-gradient-to-r from-brand-primary to-cyan-500 text-white font-black text-lg sm:text-xl rounded-2xl overflow-hidden shadow-2xl w-full sm:w-auto max-w-sm"
+                className="group relative px-8 sm:px-12 py-4 sm:py-5 bg-slate-900 text-white font-black text-lg sm:text-xl rounded-2xl overflow-hidden shadow-2xl w-full sm:w-auto max-w-sm"
               >
                 <span className="relative z-10 flex items-center justify-center gap-3">
                   Start Trading Smarter 
@@ -773,7 +773,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                   </motion.div>
                 </span>
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-brand-primary"
+                  className="absolute inset-0 bg-gradient-to-r from-slate-800 to-slate-900"
                   initial={{ x: '-100%' }}
                   whileHover={{ x: '0%' }}
                   transition={{ duration: 0.6 }}
@@ -784,17 +784,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 whileHover={{ 
                   scale: 1.05, 
                   boxShadow: '0 8px 30px rgba(0,0,0,0.1)',
-                  backgroundColor: '#f8fafc'
+                  backgroundColor: '#1e293b'
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onSelectTier('signup')}
-                className="px-8 sm:px-10 py-4 sm:py-5 border-2 border-brand-primary/40 text-brand-primary font-semibold text-lg rounded-2xl flex items-center justify-center gap-3 hover:bg-brand-primary/5 transition-all w-full sm:w-auto max-w-sm"
+                className="px-8 sm:px-10 py-4 sm:py-5 border-2 border-slate-700 text-white font-semibold text-lg rounded-2xl flex items-center justify-center gap-3 hover:bg-slate-800 transition-all w-full sm:w-auto max-w-sm"
               >
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Play className="h-5 w-5 fill-brand-primary" />
+                  <Play className="h-5 w-5 fill-white" />
                 </motion.div>
                 Watch Free Masterclass
               </motion.button>
@@ -958,7 +958,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                           }
                         }}
                         whileHover={{ scale: 1.02 }}
-                        className={`w-full py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold transition text-sm sm:text-base ${isPopular ? 'bg-brand-primary text-white hover:brightness-95' : isElite ? 'bg-violet-600 hover:bg-violet-500 text-white' : 'border border-slate-200 hover:bg-slate-100 text-slate-900'}`}
+                        className={`w-full py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold transition text-sm sm:text-base ${isPopular ? 'bg-slate-900 text-white hover:bg-slate-800' : isElite ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'border border-slate-700 hover:bg-slate-800 text-white'}`}
                       >
                         {isFree ? 'Join for Free' : isElite ? 'Apply Now' : 'Get Started'}
                       </motion.button>
@@ -1031,7 +1031,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   onClick={() => onSelectTier('signup')}
-                  className="bg-brand-primary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg hover:brightness-95 transition flex items-center gap-2 shadow-md"
+                  className="bg-slate-900 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg hover:bg-slate-800 transition flex items-center gap-2 shadow-md"
                 >
                   Try AI Trade Guard <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                 </motion.button>
@@ -1124,11 +1124,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               <motion.button
                 whileHover={{ 
                   scale: 1.05,
-                  boxShadow: '0 10px 40px rgba(6,182,212,0.4)'
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
                 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onSelectTier('signup')}
-                className="px-10 sm:px-16 py-5 sm:py-6 bg-gradient-to-r from-brand-primary to-cyan-500 text-white text-xl sm:text-2xl font-black rounded-2xl shadow-2xl hover:shadow-3xl transition-all relative overflow-hidden group"
+                className="px-10 sm:px-16 py-5 sm:py-6 bg-slate-900 text-white text-xl sm:text-2xl font-black rounded-2xl shadow-2xl hover:shadow-3xl transition-all relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-3">
                   Start Your Journey 
@@ -1142,7 +1142,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 
                 {/* Shimmer effect */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                   initial={{ x: '-100%' }}
                   whileHover={{ x: '100%' }}
                   transition={{ duration: 0.8 }}
