@@ -194,7 +194,7 @@ const App: React.FC = () => {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found, which we handle below
 
       if (data) {
         console.log('Profile found:', data);
@@ -221,10 +221,47 @@ const App: React.FC = () => {
           }
         }
       } else {
-        console.error('No profile found for user:', userId);
+        console.log('No profile found for user, creating one:', userId);
+        // Create a default profile for the user
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            email: email,
+            full_name: email.split('@')[0],
+            subscription_tier: 'free',
+            role: 'student'
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        
+        console.log('Profile created:', newProfile);
+        setUser({
+          id: newProfile.id,
+          name: newProfile.full_name || email.split('@')[0],
+          email: email,
+          role: newProfile.role as any,
+          subscriptionTier: newProfile.subscription_tier as any,
+          progress: 0
+        });
+        
+        // Set default view for new users
+        setPortalView('community');
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error fetching/creating profile:', error);
+      // Even if we can't fetch/create profile, still set a basic user object
+      setUser({
+        id: userId,
+        name: email.split('@')[0],
+        email: email,
+        role: 'student',
+        subscriptionTier: 'free',
+        progress: 0
+      });
+      setPortalView('community');
     }
   };
 

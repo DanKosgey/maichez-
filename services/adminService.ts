@@ -532,18 +532,31 @@ export const fetchUserRules = async (userId?: string): Promise<any[]> => {
       return data || [];
     }
     
-    // Fetch rules for the specific user and global rules
+    // First try to fetch user-specific rules and global rules
     const { data, error } = await supabase
       .from('trade_rules')
       .select('*')
       .or(`created_by.eq.${userId},created_by.is.null`)
       .order('order_number', { ascending: true });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching user rules with OR condition:', error);
+      // Fallback: fetch global rules only if user-specific query fails
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('trade_rules')
+        .select('*')
+        .is('created_by', null)
+        .order('order_number', { ascending: true });
+      
+      if (fallbackError) throw fallbackError;
+      return fallbackData || [];
+    }
+    
     return data || [];
   } catch (error) {
     console.error('Error fetching user rules:', error);
-    throw error;
+    // Return empty array as fallback instead of throwing error
+    return [];
   }
 };
 

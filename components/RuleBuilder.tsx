@@ -62,21 +62,38 @@ const RuleBuilderComponent: React.FC<RuleBuilderProps> = ({ userId, rules, onRul
 
   // Setup realtime subscription only once on mount
   useEffect(() => {
-    const channel = supabase
-      .channel(`rule-changes-${userId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_rules' }, () => {
-        // Debounce the reload to prevent rapid successive calls
-        const timeoutId = setTimeout(() => {
-          loadRules();
-        }, 300);
-        
-        // Cleanup timeout on unmount or when dependencies change
-        return () => clearTimeout(timeoutId);
-      })
-      .subscribe();
+    // Only setup realtime subscription if WebSocket connection is available
+    let channel: any = null;
+    
+    try {
+      channel = supabase
+        .channel(`rule-changes-${userId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_rules' }, () => {
+          // Debounce the reload to prevent rapid successive calls
+          const timeoutId = setTimeout(() => {
+            loadRules();
+          }, 300);
+          
+          // Cleanup timeout on unmount or when dependencies change
+          return () => clearTimeout(timeoutId);
+        })
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('Realtime channel error, falling back to manual refresh');
+          }
+        });
+    } catch (error) {
+      console.warn('Failed to setup realtime subscription, falling back to manual refresh:', error);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (error) {
+          console.warn('Error removing channel:', error);
+        }
+      }
     };
   }, [userId, loadRules]);
 
@@ -275,26 +292,40 @@ const RuleBuilderComponent: React.FC<RuleBuilderProps> = ({ userId, rules, onRul
           </h1>
           <p className="text-gray-400 mt-1 text-sm md:text-base">Design and prioritize the brain of your AI Trade Assistant.</p>
         </div>
-        <div className="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center">
+          <div className="flex bg-gray-800 p-1 rounded-lg border border-gray-700">
+            <button 
+              onClick={() => setActiveTab('buy')}
+              className={`px-4 md:px-6 py-2 rounded-md text-sm font-bold transition ${
+                activeTab === 'buy' 
+                  ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Long (BUY)
+            </button>
+            <button 
+              onClick={() => setActiveTab('sell')}
+              className={`px-4 md:px-6 py-2 rounded-md text-sm font-bold transition ${
+                activeTab === 'sell' 
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              Short (SELL)
+            </button>
+          </div>
           <button 
-            onClick={() => setActiveTab('buy')}
-            className={`px-4 md:px-6 py-2 rounded-md text-sm font-bold transition ${
-              activeTab === 'buy' 
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                : 'text-gray-400 hover:text-white'
-            }`}
+            onClick={loadRules}
+            disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg border border-gray-700 text-sm transition disabled:opacity-50"
           >
-            Long (BUY)
-          </button>
-          <button 
-            onClick={() => setActiveTab('sell')}
-            className={`px-4 md:px-6 py-2 rounded-md text-sm font-bold transition ${
-              activeTab === 'sell' 
-                ? 'bg-red-500/20 text-red-400 border border-red-500/30' 
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            Short (SELL)
+            {loading ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Refresh
           </button>
         </div>
       </div>
