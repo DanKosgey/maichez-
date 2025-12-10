@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, TrendingUp, ArrowRight, Mail, AlertCircle, Key } from 'lucide-react';
 import { supabase } from '../supabase/client';
+import { APP_MESSAGES } from '../lib/constants';
 
 interface LoginPageProps {
   onBack: () => void;
@@ -117,7 +118,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onBack }) => {
           </h1>
           <p className="text-gray-400">
             {showPasswordLogin 
-              ? 'Access the Maichez Trades Terminal' 
+              ? APP_MESSAGES.loginTerminal 
               : 'Enter your email to receive a login code'}
           </p>
         </div>

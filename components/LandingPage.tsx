@@ -3,6 +3,7 @@ import { motion, useAnimation, AnimatePresence, Variants, useInView } from 'fram
 import { ArrowRight, Zap, Shield, TrendingUp, Play, Check, X, Star, Lock, AlertTriangle, CheckCircle, BarChart2, Rocket, Sparkles, Target, Users, Award, Clock } from 'lucide-react';
 import { socialMediaService } from '../services/socialMediaService';
 import { SubscriptionPlan } from '../types';
+import { APP_DISPLAY_NAMES, APP_MESSAGES } from '../lib/constants';
 
 interface LandingPageProps {
   onSelectTier: (tier: 'free' | 'foundation' | 'professional' | 'elite' | 'login') => void;
@@ -603,7 +604,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 text-brand-primary" />
               </motion.div>
               <span className="text-lg sm:text-xl md:text-2xl font-black tracking-tighter bg-gradient-to-r from-slate-900 to-brand-primary bg-clip-text text-transparent">
-                Maichez<span className="text-brand-primary">Trades</span>
+                {APP_DISPLAY_NAMES.short}<span className="text-brand-primary">{APP_DISPLAY_NAMES.full.split(' ')[1]}</span>
               </span>
             </motion.div>
 
@@ -801,7 +802,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
           <div className="container mx-auto px-4 sm:px-6">
             <motion.div variants={childVariants} className="text-center mb-12 sm:mb-16">
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4">
-                Why <span className="text-brand-primary">Maichez</span> Works
+                Why <span className="text-brand-primary">{APP_DISPLAY_NAMES.short}</span> Works
               </h2>
               <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                 We combine cutting-edge technology with proven trading principles to give you an unfair advantage
@@ -1115,7 +1116,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               transition={{ duration: 0.8, delay: 0.5 }}
               className="mt-12 text-slate-400 text-sm"
             >
-              &copy; 2025 Maichez Trades. All rights reserved. Trading involves substantial risk.
+              {APP_MESSAGES.copyright}
             </motion.div>
           </div>
         </motion.section>

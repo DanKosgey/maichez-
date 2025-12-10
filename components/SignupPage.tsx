@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, TrendingUp, ArrowRight, Mail, AlertCircle, User, CheckCircle, RotateCcw } from 'lucide-react';
 import { supabase } from '../supabase/client';
+import { APP_MESSAGES } from '../lib/constants';
 
 interface SignupPageProps {
   onBack: () => void;
@@ -232,7 +233,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
           <h1 className="text-3xl font-black text-white tracking-tight mb-2">
             Create Account
           </h1>
-          <p className="text-gray-400">Join the Maichez Trades Community</p>
+          <p className="text-gray-400">{APP_MESSAGES.signupCommunity}</p>
         </div>
 
         <form onSubmit={handleSignup} className="space-y-5">

@@ -8,6 +8,7 @@ import {
 import { fetchStudentWithTrades } from '../services/adminService';
 import { courseService } from '../services/courseService';
 import { supabase } from '../supabase/client';
+import { APP_MESSAGES } from '../lib/constants';
 
 interface DashboardProps {
   user: User;
@@ -255,7 +256,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, courses, onContinueCourse }
     const endDate = formatDate(new Date(date.getTime() + durationMinutes * 60000));
     
     const details = "Join the live trading session with Alex Mbauni. Covered topics: Market Structure, Liquidity Sweeps, and Live Execution.";
-    const location = "Maichez Trades Live Room";
+    const location = APP_MESSAGES.liveRoom;
     
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}&sf=true&output=xml`;
     
