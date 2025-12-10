@@ -54,7 +54,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-trade-dark/90 backdrop-blur-md border-b border-gray-800 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2 text-white font-bold text-lg">
            <span className={`w-2 h-6 rounded-sm ${user.role === 'admin' ? 'bg-purple-500' : 'bg-trade-accent'}`}></span>
-           Mbauni <span className="text-trade-neon">Protocol</span>
+           {APP_DISPLAY_NAMES.short} <span className="text-trade-neon">{APP_DISPLAY_NAMES.full.split(' ')[1]}</span>
         </div>
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
