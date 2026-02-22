@@ -265,9 +265,22 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   };
 
-  // Initial data fetch
+  // Initial data fetch - only for admins
   useEffect(() => {
-    fetchData();
+    // We only want to fetch admin data if the user is actually an admin
+    // This prevents students from triggering 404/400 errors on admin-only RPCs
+    const userStr = localStorage.getItem('supabase.auth.token');
+    if (userStr) {
+      try {
+        const session = JSON.parse(userStr);
+        const role = session?.user?.user_metadata?.role || 'student';
+        if (role === 'admin') {
+          fetchData();
+        }
+      } catch (e) {
+        console.error('Error parsing session for role check:', e);
+      }
+    }
   }, []);
 
   const refreshData = async () => {

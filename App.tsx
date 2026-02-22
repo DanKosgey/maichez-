@@ -253,6 +253,15 @@ const App: React.FC = () => {
       if (data) {
         setUser(prev => {
           if (!prev) return prev;
+          // Only update if there's an actual change to avoid unnecessary re-renders
+          if (
+            prev.botAccess === data.bot_access &&
+            prev.botPurchaseStatus === data.bot_purchase_status &&
+            prev.subscriptionTier === data.subscription_tier &&
+            prev.role === data.role
+          ) return prev;
+
+          console.log('Profile polled and updated:', data);
           return {
             ...prev,
             botAccess: data.bot_access ?? prev.botAccess,
@@ -262,10 +271,41 @@ const App: React.FC = () => {
           };
         });
       }
-    }, 30000); // every 30 seconds
+    }, 10000); // reduced to 10 seconds for a "live" feel
 
     return () => clearInterval(interval);
   }, [user?.id, user?.role]);
+
+  // Handle cross-component navigation events (e.g. from Dashboard cards)
+  useEffect(() => {
+    const handleNavigation = (e: any) => {
+      if (e.detail) {
+        setPortalView(e.detail);
+      }
+    };
+
+    window.addEventListener('navigateToView' as any, handleNavigation);
+    return () => window.removeEventListener('navigateToView' as any, handleNavigation);
+  }, []);
+
+  // Proactive Navigation: Automatically push the student to new content when upgraded/granted access
+  useEffect(() => {
+    if (!user || user.role === 'admin') return;
+
+    const isPending = user.subscriptionTier.includes('-pending');
+    const isFree = user.subscriptionTier === 'free';
+
+    // If student was on "Under Review" or restricted "Community" and just got upgraded
+    if (portalView === 'dashboard' && isPending) {
+      // Stay on dashboard, the UnderReviewPage is rendered there
+    } else if (portalView === 'dashboard' && !isPending && !isFree) {
+      // If they were pending and are now active, and already on dashboard, just let it render Dashboard
+    } else if (portalView === 'community' && !isPending && !isFree) {
+      // Automatically push from community to dashboard upon upgrade
+      console.log('Student upgraded! Proactively navigating to Dashboard.');
+      setPortalView('dashboard');
+    }
+  }, [user?.subscriptionTier, user?.botAccess]);
 
   const fetchProfile = async (userId: string, email: string) => {
     try {
@@ -536,7 +576,9 @@ const App: React.FC = () => {
   if (user) {
     const renderContent = () => {
       // --- ACCESS CONTROL CHECK ---
-      const isAdminView = ['overview', 'admin-dashboard', 'dashboard', 'directory', 'student-management', 'trades', 'analytics', 'content', 'rules', 'journal', 'admin-analytics', 'settings', 'bot-inquiries', 'bot'].includes(portalView);
+      // truly admin-only views that students should NEVER access
+      const isAdminView = ['overview', 'admin-dashboard', 'directory', 'student-management', 'trades', 'analytics', 'content', 'rules', 'admin-analytics', 'settings', 'bot-inquiries'].includes(portalView);
+
       if (user.role !== 'admin' && isAdminView) {
         return (
           <div className="flex flex-col items-center justify-center h-[60vh] text-center animate-in fade-in zoom-in duration-300">
@@ -646,13 +688,7 @@ const App: React.FC = () => {
             return <UnderReviewPage userTier={user.subscriptionTier} onLogout={handleLogout} />;
           }
 
-          // For free users, redirect to community
-          if (user.subscriptionTier === 'free') {
-            setPortalView('community');
-            return <CommunityHub />;
-          }
-
-          // For foundation and above, show dashboard
+          // Show dashboard for foundation and above
           return (
             <Dashboard
               user={user}
@@ -792,12 +828,14 @@ const App: React.FC = () => {
             />
           );
         case 'bot':
-          const hasBotAccess = user.botAccess || user.botPurchaseStatus === 'completed';
-          return hasBotAccess ? (
-            <BotDownloadPage user={user} />
-          ) : (
-            <BotStore user={user} onUpdateUser={setUser} />
-          );
+          // Access Control: Check if user has been granted access or has a completed purchase
+          const hasBotAccess = user.botAccess === true || user.botPurchaseStatus === 'completed';
+
+          if (hasBotAccess) {
+            return <BotDownloadPage user={user} />;
+          }
+
+          return <BotStore user={user} onUpdateUser={setUser} />;
         case 'todos':
           // Access Control: Only foundation, professional, and elite tiers can access todos
           // Pending users cannot access
