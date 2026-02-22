@@ -238,6 +238,35 @@ const App: React.FC = () => {
     };
   }, [user?.id]);
 
+  // Polling fallback: re-fetch profile every 30s for students
+  // This ensures bot access / tier changes reflect even without Supabase Realtime configured
+  useEffect(() => {
+    if (!user?.id || user?.role === 'admin') return;
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('bot_access, bot_purchase_status, subscription_tier, role')
+        .eq('id', user.id)
+        .single();
+
+      if (data) {
+        setUser(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            botAccess: data.bot_access ?? prev.botAccess,
+            botPurchaseStatus: data.bot_purchase_status ?? prev.botPurchaseStatus,
+            subscriptionTier: data.subscription_tier ?? prev.subscriptionTier,
+            role: data.role ?? prev.role,
+          };
+        });
+      }
+    }, 30000); // every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [user?.id, user?.role]);
+
   const fetchProfile = async (userId: string, email: string) => {
     try {
       console.log('Fetching profile for user:', userId);

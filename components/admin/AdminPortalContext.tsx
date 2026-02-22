@@ -160,8 +160,11 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const updateStudentProfile = async (studentId: string, updates: Partial<StudentProfile>) => {
     try {
       await updateStudentProfileService(studentId, updates);
-      // Refresh the student data after update
-      await fetchStudents();
+      // Optimistically update the local students state immediately
+      // (avoids relying on the RPC re-fetch which doesn't return bot_access yet)
+      setStudents(prev => prev.map(s =>
+        s.id === studentId ? { ...s, ...updates } : s
+      ));
     } catch (err) {
       console.error('Error updating student profile:', err);
       throw err;
