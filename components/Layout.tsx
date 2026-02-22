@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, GraduationCap, Bot, BookOpen, Users, LogOut, Settings, ShieldAlert, Layers, PieChart as PieIcon, CheckSquare, X, Menu } from 'lucide-react';
+import { LayoutDashboard, GraduationCap, Bot, BookOpen, Users, LogOut, Settings, ShieldAlert, Layers, PieChart as PieIcon, CheckSquare, X, Menu, Zap } from 'lucide-react';
 import { User } from '../types';
 import NavigationButtons from './NavigationButtons';
 import { APP_DISPLAY_NAMES } from '../lib/constants';
@@ -30,18 +30,20 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
 
   if (user.role === 'admin') {
     menuItems = [
-      { id: 'admin-dashboard', label: 'Command', icon: ShieldAlert },
-      { id: 'admin-students', label: 'Directory', icon: Users },
-      { id: 'admin-trades', label: 'Trades', icon: Layers },
-      { id: 'admin-analytics', label: 'Analytics', icon: PieIcon },
-      { id: 'admin-content', label: 'Courses', icon: GraduationCap },
-      { id: 'admin-rules', label: 'Rules', icon: Settings },
+      { id: 'overview', label: 'Command', icon: ShieldAlert },
+      { id: 'directory', label: 'Directory', icon: Users },
+      { id: 'trades', label: 'Trades', icon: Layers },
+      { id: 'analytics', label: 'Analytics', icon: PieIcon },
+      { id: 'content', label: 'Courses', icon: GraduationCap },
+      { id: 'rules', label: 'Rules', icon: Settings },
+      { id: 'bot', label: 'Alpha Bot', icon: Zap },
     ];
   } else {
     menuItems = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'courses', label: 'Courses', icon: GraduationCap },
       { id: 'ai', label: 'AI', icon: Bot, premium: true },
+      { id: 'bot', label: 'Alpha Bot', icon: Zap, premium: true },
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'todos', label: 'Tasks', icon: CheckSquare },
       { id: 'community', label: 'Community', icon: Users },
@@ -117,11 +119,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
                   <button
                     key={item.id}
                     onClick={() => handleNavClick(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium mb-1 last:mb-0 ${
-                      isActive
-                        ? `${accentClassBgLight} ${accentClassText} border ${accentClassBorder}`
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                    }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition text-sm font-medium mb-1 last:mb-0 ${isActive
+                      ? `${accentClassBgLight} ${accentClassText} border ${accentClassBorder}`
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                      }`}
                   >
                     <Icon className="h-4 w-4 flex-shrink-0" />
                     {item.label}
@@ -182,11 +183,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04, duration: 0.3 }}
                 onClick={() => handleNavClick(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium relative group ${
-                  isActive
-                    ? `${accentClassBgLight} ${accentClassText} border ${accentClassBorder}`
-                    : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-medium relative group ${isActive
+                  ? `${accentClassBgLight} ${accentClassText} border ${accentClassBorder}`
+                  : 'text-gray-400 hover:bg-gray-800/60 hover:text-white'
+                  }`}
               >
                 {isActive && (
                   <motion.div
@@ -268,9 +268,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
                   transition={{ type: 'spring', stiffness: 600, damping: 30 }}
                 >
                   <Icon
-                    className={`h-5 w-5 transition-colors duration-200 ${
-                      isActive ? accentClassText : 'text-gray-500'
-                    }`}
+                    className={`h-5 w-5 transition-colors duration-200 ${isActive ? accentClassText : 'text-gray-500'
+                      }`}
                   />
                   {/* Glow effect */}
                   {isActive && (
@@ -282,9 +281,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
                 </motion.div>
 
                 <span
-                  className={`relative z-10 text-[10px] font-semibold leading-none transition-colors duration-200 ${
-                    isActive ? accentClassText : 'text-gray-600'
-                  }`}
+                  className={`relative z-10 text-[10px] font-semibold leading-none transition-colors duration-200 ${isActive ? accentClassText : 'text-gray-600'
+                    }`}
                 >
                   {item.label}
                 </span>

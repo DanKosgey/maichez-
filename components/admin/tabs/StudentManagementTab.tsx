@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
 import { StudentProfile } from '../../../types';
 import {
-  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle
+  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Bot
 } from 'lucide-react';
 
 const StudentManagementTab: React.FC = () => {
@@ -53,7 +53,8 @@ const StudentManagementTab: React.FC = () => {
     winRate: `${student.stats?.winRate || 0}%`,
     totalPnL: student.stats?.totalPnL || 0,
     avgRiskReward: student.stats?.avgRiskReward || 0,
-    recentTrades: student.recentTrades || []
+    recentTrades: student.recentTrades || [],
+    botAccess: student.botAccess || false
   }));
 
   const filteredStudents = tableData.filter(student =>
@@ -70,7 +71,8 @@ const StudentManagementTab: React.FC = () => {
       name: student.name,
       email: student.email,
       tier: student.tier,
-      status: student.status
+      status: student.status,
+      botAccess: student.botAccess
     });
   };
 
@@ -85,7 +87,8 @@ const StudentManagementTab: React.FC = () => {
       await updateStudentProfile(editingStudentId, {
         name: editedStudent.name,
         email: editedStudent.email,
-        tier: editedStudent.tier
+        tier: editedStudent.tier,
+        botAccess: editedStudent.botAccess
       });
 
       // Reset editing state
@@ -279,6 +282,18 @@ const StudentManagementTab: React.FC = () => {
                         </select>
                       </td>
                       <td className="py-4">
+                        <button
+                          onClick={() => setEditedStudent({ ...editedStudent, botAccess: !editedStudent?.botAccess })}
+                          className={`flex items-center gap-2 px-3 py-1 rounded-lg border transition ${editedStudent?.botAccess
+                            ? 'bg-trade-neon/20 border-trade-neon/50 text-trade-neon'
+                            : 'bg-gray-800 border-gray-700 text-gray-500'
+                            }`}
+                        >
+                          <Bot className="h-4 w-4" />
+                          <span className="text-xs font-bold">{editedStudent?.botAccess ? 'BOT ON' : 'BOT OFF'}</span>
+                        </button>
+                      </td>
+                      <td className="py-4">
                         <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getStatusColor(student.status).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
                           {student.status}
                         </span>
@@ -314,7 +329,12 @@ const StudentManagementTab: React.FC = () => {
                             {student.name?.charAt(0) || '?'}
                           </div>
                           <div>
-                            <div className="font-bold text-white">{student.name || 'Unknown'}</div>
+                            <div className="font-bold text-white flex items-center gap-2">
+                              {student.name || 'Unknown'}
+                              {student.botAccess && (
+                                <Bot className="h-3 w-3 text-trade-neon" title="Bot Access Enabled" />
+                              )}
+                            </div>
                             <div className="text-xs text-gray-400">{student.email}</div>
                           </div>
                         </div>

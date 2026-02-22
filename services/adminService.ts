@@ -6,15 +6,16 @@ export const fetchAllStudents = async (): Promise<StudentProfile[]> => {
   try {
     // Using RPC to call our custom function
     const { data, error } = await supabase.rpc('get_all_students_for_admin');
-    
+
     if (error) throw error;
-    
+
     // Transform the data to match StudentProfile interface
     return data.map((student: any) => ({
       id: student.id,
       name: student.name,
       email: student.email,
       tier: student.tier,
+      botAccess: student.bot_access || false,
       joinedDate: student.joined_date,
       status: student.status,
       stats: {
@@ -37,9 +38,9 @@ export const fetchAllTrades = async (): Promise<(TradeEntry & { studentId: strin
   try {
     // Using RPC to call our enhanced custom function
     const { data, error } = await supabase.rpc('get_all_trades_for_admin_enhanced');
-    
+
     if (error) throw error;
-    
+
     // Transform the data to match TradeEntry interface
     return data.map((trade: any) => ({
       id: trade.id,
@@ -73,9 +74,9 @@ export const fetchBusinessMetrics = async () => {
   try {
     // Using RPC to call our custom function
     const { data, error } = await supabase.rpc('get_business_metrics');
-    
+
     if (error) throw error;
-    
+
     if (data && data.length > 0) {
       const metrics = data[0];
       return {
@@ -83,8 +84,8 @@ export const fetchBusinessMetrics = async () => {
         totalRevenue: metrics.total_revenue || 0,
         churnRate: metrics.churn_rate || 0,
         // Calculate growth percentage based on MRR and total revenue
-        growthPercentage: metrics.mrr > 0 && metrics.total_revenue > metrics.mrr 
-          ? Math.max(0, Math.min(100, Math.round((metrics.mrr / (metrics.total_revenue - metrics.mrr)) * 100))) 
+        growthPercentage: metrics.mrr > 0 && metrics.total_revenue > metrics.mrr
+          ? Math.max(0, Math.min(100, Math.round((metrics.mrr / (metrics.total_revenue - metrics.mrr)) * 100)))
           : 0,
         tierData: [
           { name: 'Foundation', value: metrics.foundation_count || 0, color: '#94a3b8' },
@@ -93,7 +94,7 @@ export const fetchBusinessMetrics = async () => {
         ]
       };
     }
-    
+
     return {
       mrr: 0,
       totalRevenue: 0,
@@ -116,14 +117,14 @@ export const fetchComprehensiveAnalytics = async () => {
   try {
     console.log('Fetching comprehensive analytics...');
     const { data, error } = await supabase.rpc('get_comprehensive_analytics');
-    
+
     if (error) {
       console.error('RPC Error in fetchComprehensiveAnalytics:', error);
       throw error;
     }
-    
+
     console.log('Comprehensive analytics data:', data);
-    
+
     if (data && data.length > 0) {
       const analytics = data[0];
       return {
@@ -138,7 +139,7 @@ export const fetchComprehensiveAnalytics = async () => {
         totalPnL: analytics.total_pnl || 0
       };
     }
-    
+
     return {
       totalStudents: 0,
       activeStudents: 0,
@@ -167,14 +168,14 @@ export const fetchRevenueGrowthData = async () => {
   try {
     console.log('Fetching revenue growth data...');
     const { data, error } = await supabase.rpc('get_revenue_growth_data');
-    
+
     if (error) {
       console.error('RPC Error in fetchRevenueGrowthData:', error);
       throw error;
     }
-    
+
     console.log('Revenue growth data:', data);
-    
+
     // Convert to the format expected by the UI
     return data.map((item: any) => ({
       month: item.month_year || 'Unknown',
@@ -198,14 +199,14 @@ export const fetchCourseCompletionData = async () => {
   try {
     console.log('Fetching course completion data...');
     const { data, error } = await supabase.rpc('get_course_completion_data');
-    
+
     if (error) {
       console.error('RPC Error in fetchCourseCompletionData:', error);
       throw error;
     }
-    
+
     console.log('Course completion data:', data);
-    
+
     return data.map((item: any) => ({
       moduleId: item.module_id || '',
       name: item.module_title || 'Unknown Module',
@@ -231,14 +232,14 @@ export const fetchRuleViolationsData = async () => {
   try {
     console.log('Fetching rule violations data...');
     const { data, error } = await supabase.rpc('get_rule_violations_data');
-    
+
     if (error) {
       console.error('RPC Error in fetchRuleViolationsData:', error);
       throw error;
     }
-    
+
     console.log('Rule violations data:', data);
-    
+
     return data.map((item: any) => ({
       rule: item.rule_name || 'Unknown Rule',
       count: parseInt(item.violation_count) || 0
@@ -260,14 +261,14 @@ export const fetchRuleViolationsData = async () => {
 export const fetchStudentPenalties = async () => {
   try {
     console.log('Fetching student penalties data...');
-    
+
     // Use the new database function for better performance
     const { data, error } = await supabase.rpc('get_student_penalties');
-    
+
     if (error) throw error;
-    
+
     console.log('Top 20 students by penalties:', data);
-    
+
     return data || [];
   } catch (error: any) {
     console.error('Error fetching student penalties data:', error);
@@ -287,14 +288,14 @@ export const fetchPenaltyTrends = async () => {
   try {
     console.log('Fetching penalty trends data...');
     const { data, error } = await supabase.rpc('get_penalty_trends');
-    
+
     if (error) {
       console.error('RPC Error in fetchPenaltyTrends:', error);
       throw error;
     }
-    
+
     console.log('Penalty trends data:', data);
-    
+
     // Convert to the format expected by the UI
     return data.map((item: any) => ({
       date: item.date_period || 'Unknown',
@@ -324,15 +325,15 @@ export const fetchStudentWithTrades = async (studentId: string): Promise<Student
       .select('*')
       .eq('id', studentId)
       .single();
-    
+
     if (profileError) throw profileError;
     if (!profileData) return null;
-    
+
     // Get student stats
     const { data: statsData, error: statsError } = await supabase.rpc('get_student_stats', { user_id: studentId });
-    
+
     if (statsError) throw statsError;
-    
+
     const stats = statsData && statsData.length > 0 ? statsData[0] : {
       win_rate: 0,
       total_pnl: 0,
@@ -340,7 +341,7 @@ export const fetchStudentWithTrades = async (studentId: string): Promise<Student
       avg_risk_reward: 0,
       current_drawdown: 0
     };
-    
+
     // Get recent trades for this student
     const { data: tradesData, error: tradesError } = await supabase
       .from('journal_entries')
@@ -348,9 +349,9 @@ export const fetchStudentWithTrades = async (studentId: string): Promise<Student
       .eq('user_id', studentId)
       .order('date', { ascending: false })
       .limit(10); // Limit to recent 10 trades
-    
+
     if (tradesError) throw tradesError;
-    
+
     // Transform trades data
     const recentTrades: TradeEntry[] = tradesData.map((trade: any) => ({
       id: trade.id,
@@ -365,7 +366,7 @@ export const fetchStudentWithTrades = async (studentId: string): Promise<Student
       date: trade.date,
       pnl: trade.pnl
     }));
-    
+
     // Determine student status based on stats
     let status: 'active' | 'at-risk' | 'inactive' = 'active';
     if (stats.win_rate < 40) {
@@ -373,12 +374,13 @@ export const fetchStudentWithTrades = async (studentId: string): Promise<Student
     } else if (stats.trades_count === 0) {
       status = 'inactive';
     }
-    
+
     return {
       id: profileData.id,
       name: profileData.full_name,
       email: profileData.email,
       tier: profileData.subscription_tier,
+      botAccess: profileData.bot_access || false,
       joinedDate: profileData.joined_date,
       status,
       stats: {
@@ -401,14 +403,14 @@ export const fetchCourseEnrollmentTrends = async (days: number = 30) => {
   try {
     console.log('Fetching course enrollment trends...');
     const { data, error } = await supabase.rpc('get_course_enrollment_trends', { days });
-    
+
     if (error) {
       console.error('RPC Error in fetchCourseEnrollmentTrends:', error);
       throw error;
     }
-    
+
     console.log('Course enrollment trends data:', data);
-    
+
     return data.map((item: any) => ({
       date: item.date || 'Unknown',
       enrollments: parseInt(item.enrollments) || 0,
@@ -432,14 +434,14 @@ export const fetchModuleCompletionRates = async () => {
   try {
     console.log('Fetching module completion rates...');
     const { data, error } = await supabase.rpc('get_module_completion_rates');
-    
+
     if (error) {
       console.error('RPC Error in fetchModuleCompletionRates:', error);
       throw error;
     }
-    
+
     console.log('Module completion rates data:', data);
-    
+
     return data.map((item: any) => ({
       courseId: item.course_id || '',
       name: item.course_title || 'Unknown Course',
@@ -465,14 +467,14 @@ export const fetchCourseEnrollmentCounts = async () => {
   try {
     console.log('Fetching course enrollment counts...');
     const { data, error } = await supabase.rpc('get_course_enrollment_counts');
-    
+
     if (error) {
       console.error('RPC Error in fetchCourseEnrollmentCounts:', error);
       throw error;
     }
-    
+
     console.log('Course enrollment counts data:', data);
-    
+
     return data.map((item: any) => ({
       courseId: item.course_id || '',
       name: item.course_title || 'Unknown Course',
@@ -497,14 +499,14 @@ export const fetchCourseDifficultyDistribution = async () => {
   try {
     console.log('Fetching course difficulty distribution...');
     const { data, error } = await supabase.rpc('get_course_difficulty_distribution');
-    
+
     if (error) {
       console.error('RPC Error in fetchCourseDifficultyDistribution:', error);
       throw error;
     }
-    
+
     console.log('Course difficulty distribution data:', data);
-    
+
     return data.map((item: any) => ({
       name: item.level ? item.level.charAt(0).toUpperCase() + item.level.slice(1) : 'Unknown',
       value: parseInt(item.count) || 0
@@ -527,14 +529,14 @@ export const fetchContentTypeDistribution = async () => {
   try {
     console.log('Fetching content type distribution...');
     const { data, error } = await supabase.rpc('get_content_type_distribution');
-    
+
     if (error) {
       console.error('RPC Error in fetchContentTypeDistribution:', error);
       throw error;
     }
-    
+
     console.log('Content type distribution data:', data);
-    
+
     return data.map((item: any) => ({
       name: item.content_type ? item.content_type.charAt(0).toUpperCase() + item.content_type.slice(1) : 'Unknown',
       value: parseInt(item.count) || 0
@@ -556,7 +558,7 @@ export const fetchContentTypeDistribution = async () => {
 export const fetchUserRules = async (userId?: string): Promise<any[]> => {
   try {
     console.log('Fetching user rules for userId:', userId);
-    
+
     // If no userId is provided or it's undefined, return only global rules
     if (!userId || userId === 'undefined') {
       console.log('No valid userId provided, fetching global rules only');
@@ -565,18 +567,18 @@ export const fetchUserRules = async (userId?: string): Promise<any[]> => {
         .select('*')
         .is('created_by', null)
         .order('order_number', { ascending: true });
-      
+
       if (error) throw error;
       return data || [];
     }
-    
+
     // First try to fetch user-specific rules and global rules
     const { data, error } = await supabase
       .from('trade_rules')
       .select('*')
       .or(`created_by.eq.${userId},created_by.is.null`)
       .order('order_number', { ascending: true });
-    
+
     if (error) {
       console.error('Error fetching user rules with OR condition:', error);
       // Fallback: fetch global rules only if user-specific query fails
@@ -585,11 +587,11 @@ export const fetchUserRules = async (userId?: string): Promise<any[]> => {
         .select('*')
         .is('created_by', null)
         .order('order_number', { ascending: true });
-      
+
       if (fallbackError) throw fallbackError;
       return fallbackData || [];
     }
-    
+
     return data || [];
   } catch (error) {
     console.error('Error fetching user rules:', error);
@@ -602,11 +604,11 @@ export const fetchUserRules = async (userId?: string): Promise<any[]> => {
 export const createTradeRule = async (rule: any) => {
   try {
     console.log('Creating trade rule with data:', rule);
-    
+
     // If created_by is undefined, null, or an invalid UUID, set it to null
-    if (!rule.created_by || 
-        rule.created_by === 'undefined' || 
-        rule.created_by === '00000000-0000-0000-0000-000000000000') {
+    if (!rule.created_by ||
+      rule.created_by === 'undefined' ||
+      rule.created_by === '00000000-0000-0000-0000-000000000000') {
       console.log('Invalid or missing created_by, setting to null for global rule');
       rule.created_by = null;
     } else {
@@ -616,19 +618,19 @@ export const createTradeRule = async (rule: any) => {
         .select('id')
         .eq('id', rule.created_by)
         .single();
-      
+
       if (profileError || !profileData) {
         console.warn(`Profile with id ${rule.created_by} not found. Setting created_by to null.`);
         rule.created_by = null;
       }
     }
-    
+
     const { data, error } = await supabase
       .from('trade_rules')
       .insert([rule])
       .select()
       .single();
-    
+
     if (error) throw error;
     console.log('Trade rule created successfully:', data);
     return data;
@@ -642,14 +644,14 @@ export const createTradeRule = async (rule: any) => {
 export const updateTradeRule = async (ruleId: string, updates: any) => {
   try {
     console.log('Updating trade rule:', ruleId, updates);
-    
+
     const { data, error } = await supabase
       .from('trade_rules')
       .update(updates)
       .eq('id', ruleId)
       .select()
       .single();
-    
+
     if (error) throw error;
     console.log('Trade rule updated successfully:', data);
     return data;
@@ -663,12 +665,12 @@ export const updateTradeRule = async (ruleId: string, updates: any) => {
 export const deleteTradeRule = async (ruleId: string) => {
   try {
     console.log('Deleting trade rule:', ruleId);
-    
+
     const { error } = await supabase
       .from('trade_rules')
       .delete()
       .eq('id', ruleId);
-    
+
     if (error) throw error;
     console.log('Trade rule deleted successfully');
     return true;
@@ -682,16 +684,16 @@ export const deleteTradeRule = async (ruleId: string) => {
 export const reorderTradeRules = async (ruleIds: string[]) => {
   try {
     console.log('Reordering trade rules:', ruleIds);
-    
+
     const updates = ruleIds.map((id, index) => ({
       id,
       order_number: index
     }));
-    
+
     const { error } = await supabase
       .from('trade_rules')
       .upsert(updates);
-    
+
     if (error) throw error;
     console.log('Trade rules reordered successfully');
     return true;
@@ -726,6 +728,7 @@ export const fetchPendingApplications = async (): Promise<StudentProfile[]> => {
       name: user.full_name,
       email: user.email,
       tier: user.subscription_tier,
+      botAccess: user.bot_access || false,
       joinedDate: user.joined_date,
       status: 'active', // Pending applications are considered active
       stats: {
@@ -747,26 +750,27 @@ export const fetchPendingApplications = async (): Promise<StudentProfile[]> => {
 export const updateStudentProfile = async (studentId: string, updates: Partial<StudentProfile>) => {
   try {
     console.log('Updating student profile:', studentId, updates);
-    
+
     // Map StudentProfile fields to database fields
     const dbUpdates: any = {};
     if (updates.name !== undefined) dbUpdates.full_name = updates.name;
     if (updates.email !== undefined) dbUpdates.email = updates.email;
     if (updates.tier !== undefined) dbUpdates.subscription_tier = updates.tier;
-    
+    if (updates.botAccess !== undefined) dbUpdates.bot_access = updates.botAccess;
+
     const { data, error } = await supabase
       .from('profiles')
       .update(dbUpdates)
       .eq('id', studentId)
       .select();
-    
+
     if (error) throw error;
-    
+
     // Check if any rows were updated
     if (!data || data.length === 0) {
       throw new Error('No profile found for the given student ID');
     }
-    
+
     console.log('Student profile updated successfully:', data[0]);
     return data[0];
   } catch (error) {
@@ -779,12 +783,12 @@ export const updateStudentProfile = async (studentId: string, updates: Partial<S
 export const deleteStudentProfile = async (studentId: string) => {
   try {
     console.log('Deleting student profile:', studentId);
-    
+
     const { error } = await supabase
       .from('profiles')
       .delete()
       .eq('id', studentId);
-    
+
     if (error) throw error;
     console.log('Student profile deleted successfully');
     return true;

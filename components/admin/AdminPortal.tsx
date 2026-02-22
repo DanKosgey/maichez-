@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, CourseModule } from '../../types';
-import { 
-  LayoutDashboard, Users, Layers, PieChart as PieIcon, 
+import {
+  LayoutDashboard, Users, Layers, PieChart as PieIcon,
   BookOpen, Zap, DollarSign, CreditCard, BarChart3, ShieldAlert, UserCog
 } from 'lucide-react';
 import { useAdminPortal } from './AdminPortalContext';
@@ -47,8 +47,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
 
   const isValidTab = (tab: string): tab is typeof activeTab => {
     return [
-      'overview', 'directory', 'trades', 'analytics', 
-      'content', 'rules', 'journal', 'admin-analytics', 'settings'
+      'overview', 'directory', 'trades', 'analytics',
+      'content', 'rules', 'journal', 'admin-analytics', 'settings', 'student-management'
     ].includes(tab);
   };
 

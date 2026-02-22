@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
 import {
-  DollarSign, BarChart2, TrendingUp, Users, FileText
+  DollarSign, BarChart2, TrendingUp, Users, FileText, UserCog, Layers, PieChart, BookOpen, Zap, BarChart3, Settings
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 
@@ -282,6 +282,35 @@ const OverviewTab: React.FC = () => {
               No trade data available
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Quick Operations Grid */}
+      <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-xl">
+        <h3 className="text-xl font-bold mb-6 text-white">Quick Operations</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {[
+            { id: 'directory', label: 'Directory', icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+            { id: 'student-management', label: 'Management', icon: UserCog, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+            { id: 'trades', label: 'Trade Audit', icon: Layers, color: 'text-orange-400', bg: 'bg-orange-400/10' },
+            { id: 'analytics', label: 'Analytics', icon: PieChart, color: 'text-green-400', bg: 'bg-green-400/10' },
+            { id: 'content', label: 'Courses', icon: BookOpen, color: 'text-pink-400', bg: 'bg-pink-400/10' },
+            { id: 'rules', label: 'Rules', icon: Zap, color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
+          ].map((op) => {
+            const Icon = op.icon;
+            return (
+              <button
+                key={op.id}
+                onClick={() => setActiveTab(op.id as any)}
+                className="flex flex-col items-center justify-center p-4 rounded-xl border border-gray-700/50 hover:bg-gray-700/50 hover:border-gray-600 transition-all group gap-3"
+              >
+                <div className={`p-3 rounded-lg ${op.bg} ${op.color} group-hover:scale-110 transition-transform shadow-lg`}>
+                  <Icon className="h-6 w-6" />
+                </div>
+                <span className="text-xs font-bold text-gray-300 group-hover:text-white transition-colors">{op.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

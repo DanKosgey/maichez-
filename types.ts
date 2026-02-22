@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   subscriptionTier: 'free' | 'foundation' | 'professional' | 'elite' | 'elite-pending';
   progress: number;
+  botAccess: boolean;
 }
 
 export interface TradeRule {
@@ -35,7 +36,7 @@ export interface TradeEntry {
   emotions?: string[]; // e.g., 'confident', 'fomo', 'anxious'
   pnl?: number;        // Realized P&L
   screenshotUrl?: string;
-  
+
   // Enhanced fields for better analytics and admin oversight
   strategy?: string;
   timeFrame?: string;
@@ -149,6 +150,7 @@ export interface StudentProfile {
   name: string;
   email: string;
   tier: 'free' | 'foundation' | 'professional' | 'elite';
+  botAccess: boolean;
   joinedDate: string;
   stats: {
     winRate: number;

@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { StudentProfile, SubscriptionPlan, CommunityLink } from '../../types';
-import { 
-  fetchAllStudents as fetchAllStudentsService, 
-  fetchAllTrades as fetchAllTradesService, 
-  fetchBusinessMetrics as fetchBusinessMetricsService, 
-  fetchRevenueGrowthData as fetchRevenueGrowthDataService, 
-  fetchCourseEnrollmentCounts as fetchCourseEnrollmentCountsService, 
+import {
+  fetchAllStudents as fetchAllStudentsService,
+  fetchAllTrades as fetchAllTradesService,
+  fetchBusinessMetrics as fetchBusinessMetricsService,
+  fetchRevenueGrowthData as fetchRevenueGrowthDataService,
+  fetchCourseEnrollmentCounts as fetchCourseEnrollmentCountsService,
   fetchRuleViolationsData as fetchRuleViolationsDataService,
   fetchStudentPenalties as fetchStudentPenaltiesService,
   fetchPenaltyTrends as fetchPenaltyTrendsService,
@@ -14,16 +14,17 @@ import {
 } from '../../services/adminService';
 import { socialMediaService } from '../../services/socialMediaService';
 
-type AdminTab = 
-  | 'overview' 
-  | 'directory' 
-  | 'trades' 
-  | 'analytics' 
-  | 'content' 
-  | 'rules' 
-  | 'journal' 
-  | 'admin-analytics' 
-  | 'settings';
+type AdminTab =
+  | 'overview'
+  | 'directory'
+  | 'trades'
+  | 'analytics'
+  | 'content'
+  | 'rules'
+  | 'journal'
+  | 'admin-analytics'
+  | 'settings'
+  | 'student-management';
 
 interface AdminPortalContextType {
   activeTab: AdminTab;
@@ -93,8 +94,8 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const isValidTab = (tab: string): tab is AdminTab => {
     return [
-      'overview', 'directory', 'trades', 'analytics', 
-      'content', 'rules', 'journal', 'admin-analytics', 'settings'
+      'overview', 'directory', 'trades', 'analytics',
+      'content', 'rules', 'journal', 'admin-analytics', 'settings', 'student-management'
     ].includes(tab);
   };
 
@@ -272,10 +273,10 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   return (
-    <AdminPortalContext.Provider value={{ 
-      activeTab, 
-      setActiveTab, 
-      refreshData, 
+    <AdminPortalContext.Provider value={{
+      activeTab,
+      setActiveTab,
+      refreshData,
       isRefreshing,
       // Data states
       students,
