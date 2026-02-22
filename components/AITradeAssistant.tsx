@@ -21,7 +21,7 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
   const [loadingRules, setLoadingRules] = useState(true);
   const [conversationStep, setConversationStep] = useState<'initial' | 'awaiting_direction' | 'awaiting_details' | 'analysis_complete'>('initial');
   const [tradeContext, setTradeContext] = useState<{ direction?: 'buy' | 'sell'; pair?: string; details?: string }>({});
-  
+
   // State to track the context of the last trade discussed
   const [lastAnalyzedTrade, setLastAnalyzedTrade] = useState<Partial<TradeEntry> | null>(null);
 
@@ -37,11 +37,10 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
         // It's a structured response, render it with special formatting
         return (
           <div className="space-y-4">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
-              parsed.verdict === 'APPROVED' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${parsed.verdict === 'APPROVED' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
               parsed.verdict === 'REJECTED' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
-              'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-            }`}>
+                'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+              }`}>
               {parsed.verdict === 'APPROVED' ? (
                 <>
                   <CheckCircle className="h-5 w-5" />
@@ -68,7 +67,7 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
     } catch (e) {
       // Not JSON, render as plain text
     }
-    
+
     // Render as plain text
     return <div className="whitespace-pre-wrap leading-relaxed text-gray-200">{msg.text}</div>;
   };
@@ -76,7 +75,7 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
   // Load user rules on component mount
   useEffect(() => {
     loadUserRules();
-    
+
     // Set up real-time subscription for rule changes
     const channel = supabase
       .channel('user-rule-changes')
@@ -169,7 +168,7 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
     setMessages(prev => [...prev, userMsg]);
     const currentInput = inputText;
     setInputText('');
-    
+
     // Handle conversation flow
     switch (conversationStep) {
       case 'initial':
@@ -203,7 +202,7 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
           setMessages(prev => [...prev, aiMsg]);
         }
         return;
-        
+
       case 'awaiting_direction':
         // Capture the pair
         setTradeContext(prev => ({ ...prev, pair: currentInput.trim() }));
@@ -215,14 +214,14 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
         };
         setMessages(prev => [...prev, pairMsg]);
         return;
-        
+
       case 'awaiting_details':
         // Capture the details and proceed to analysis
         setTradeContext(prev => ({ ...prev, details: currentInput.trim() }));
         setConversationStep('analysis_complete');
         // Proceed to analysis
         break;
-        
+
       default:
         // For subsequent messages, just add to context
         break;
@@ -275,22 +274,22 @@ User Details: ${tradeContext.details || currentInput}
 
     setMessages(prev => [...prev, aiMsg]);
     setIsAnalyzing(false);
-    
+
     // Heuristic parsing to create a draft trade entry
     const lowerResponse = aiResponseText.toLowerCase();
-    const validationResult: TradeValidationStatus = 
+    const validationResult: TradeValidationStatus =
       lowerResponse.includes('approved') ? 'approved' :
-      lowerResponse.includes('rejected') ? 'rejected' :
-      'warning';
+        lowerResponse.includes('rejected') ? 'rejected' :
+          'warning';
 
     const type = tradeContext.direction || (currentInput.toLowerCase().includes('sell') ? 'sell' : 'buy');
-    
+
     setLastAnalyzedTrade({
-        notes: `AI Analysis Request: ${tradeDetails}`,
-        validationResult: validationResult,
-        type: type,
-        screenshotUrl: selectedImage || undefined,
-        date: new Date().toISOString()
+      notes: `AI Analysis Request: ${tradeDetails}`,
+      validationResult: validationResult,
+      type: type,
+      screenshotUrl: selectedImage || undefined,
+      date: new Date().toISOString()
     });
 
     setSelectedImage(null); // Clear image after send
@@ -299,7 +298,7 @@ User Details: ${tradeContext.details || currentInput}
   // Render a preview of the uploaded image
   const renderImagePreview = () => {
     if (!selectedImage) return null;
-    
+
     return (
       <div className="mb-4 relative group">
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-3">
@@ -308,9 +307,9 @@ User Details: ${tradeContext.details || currentInput}
             <span className="text-xs font-medium text-gray-300">Chart Analysis</span>
           </div>
           <div className="relative">
-            <img 
-              src={selectedImage} 
-              alt="Trade chart" 
+            <img
+              src={selectedImage}
+              alt="Trade chart"
               className="w-full h-32 object-contain rounded-lg border border-gray-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-lg flex items-end p-2">
@@ -318,7 +317,7 @@ User Details: ${tradeContext.details || currentInput}
             </div>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => setSelectedImage(null)}
           className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 hover:bg-red-600 transition opacity-0 group-hover:opacity-100"
         >
@@ -332,41 +331,34 @@ User Details: ${tradeContext.details || currentInput}
   const renderProgressIndicator = () => {
     return (
       <div className="flex items-center justify-center gap-2 mb-4">
-        <div className={`h-2 w-2 rounded-full ${
-          conversationStep === 'initial' ? 'bg-trade-neon' : 
-          conversationStep === 'awaiting_direction' ? 'bg-trade-neon' : 
-          conversationStep === 'awaiting_details' ? 'bg-trade-neon' : 'bg-gray-600'
-        }`}></div>
-        <div className={`h-1 w-8 ${
-          conversationStep === 'awaiting_direction' || 
-          conversationStep === 'awaiting_details' || 
+        <div className={`h-2 w-2 rounded-full ${conversationStep === 'initial' ? 'bg-trade-neon' :
+          conversationStep === 'awaiting_direction' ? 'bg-trade-neon' :
+            conversationStep === 'awaiting_details' ? 'bg-trade-neon' : 'bg-gray-600'
+          }`}></div>
+        <div className={`h-1 w-8 ${conversationStep === 'awaiting_direction' ||
+          conversationStep === 'awaiting_details' ||
           conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-700'
-        }`}></div>
-        <div className={`h-2 w-2 rounded-full ${
-          conversationStep === 'awaiting_direction' || 
-          conversationStep === 'awaiting_details' || 
+          }`}></div>
+        <div className={`h-2 w-2 rounded-full ${conversationStep === 'awaiting_direction' ||
+          conversationStep === 'awaiting_details' ||
           conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-600'
-        }`}></div>
-        <div className={`h-1 w-8 ${
-          conversationStep === 'awaiting_details' || 
+          }`}></div>
+        <div className={`h-1 w-8 ${conversationStep === 'awaiting_details' ||
           conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-700'
-        }`}></div>
-        <div className={`h-2 w-2 rounded-full ${
-          conversationStep === 'awaiting_details' || 
+          }`}></div>
+        <div className={`h-2 w-2 rounded-full ${conversationStep === 'awaiting_details' ||
           conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-600'
-        }`}></div>
-        <div className={`h-1 w-8 ${
-          conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-700'
-        }`}></div>
-        <div className={`h-2 w-2 rounded-full ${
-          conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-600'
-        }`}></div>
+          }`}></div>
+        <div className={`h-1 w-8 ${conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-700'
+          }`}></div>
+        <div className={`h-2 w-2 rounded-full ${conversationStep === 'analysis_complete' ? 'bg-trade-neon' : 'bg-gray-600'
+          }`}></div>
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] bg-trade-dark rounded-xl border border-gray-700 overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-[calc(100vh-160px)] md:h-[calc(100vh-120px)] bg-trade-dark rounded-xl border border-gray-700 overflow-hidden shadow-2xl">
       {/* Header with enhanced styling */}
       <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-4 border-b border-gray-700">
         <div className="flex justify-between items-center">
@@ -388,11 +380,10 @@ User Details: ${tradeContext.details || currentInput}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gradient-to-b from-gray-900/50 to-gray-900">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[90%] md:max-w-[85%] rounded-2xl p-4 ${
-              msg.role === 'user' 
-                ? 'bg-gradient-to-br from-trade-accent to-blue-600 text-white rounded-tr-none' 
-                : 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-100 rounded-tl-none border border-gray-700 shadow-lg'
-            }`}>
+            <div className={`max-w-[90%] md:max-w-[85%] rounded-2xl p-4 ${msg.role === 'user'
+              ? 'bg-gradient-to-br from-trade-accent to-blue-600 text-white rounded-tr-none'
+              : 'bg-gradient-to-br from-gray-800 to-gray-900 text-gray-100 rounded-tl-none border border-gray-700 shadow-lg'
+              }`}>
               {/* User message header */}
               {msg.role === 'user' && (
                 <div className="flex items-center gap-2 mb-2">
@@ -402,7 +393,7 @@ User Details: ${tradeContext.details || currentInput}
                   <span className="text-xs font-medium opacity-80">You</span>
                 </div>
               )}
-              
+
               {/* AI message header */}
               {msg.role === 'model' && (
                 <div className="flex items-center gap-2 mb-3">
@@ -412,16 +403,16 @@ User Details: ${tradeContext.details || currentInput}
                   <span className="text-xs font-medium text-gray-400">AI Risk Manager</span>
                 </div>
               )}
-              
+
               {renderMessageContent(msg)}
-              
+
               <div className="text-[10px] opacity-50 mt-3 text-right">
                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
           </div>
         ))}
-        
+
         {isAnalyzing && (
           <div className="flex justify-start">
             <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 border border-gray-700 shadow-lg max-w-[85%]">
@@ -451,23 +442,23 @@ User Details: ${tradeContext.details || currentInput}
       {/* Input Area with enhanced styling */}
       <div className="p-4 bg-gray-900/80 border-t border-gray-700 backdrop-blur-sm">
         {renderImagePreview()}
-        
+
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={() => fileInputRef.current?.click()}
             className="p-3 text-gray-400 hover:text-trade-neon hover:bg-gray-800 rounded-lg transition"
             title="Upload Chart Screenshot"
           >
             <Upload className="h-5 w-5" />
           </button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleImageUpload} 
-            accept="image/*" 
-            className="hidden" 
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
           />
-          
+
           <div className="flex-1 relative">
             <input
               type="text"
@@ -476,9 +467,9 @@ User Details: ${tradeContext.details || currentInput}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder={
                 conversationStep === 'initial' ? "Is it a Buy or Sell?" :
-                conversationStep === 'awaiting_direction' ? "Which asset? (e.g., EURUSD, XAUUSD)" :
-                conversationStep === 'awaiting_details' ? "Describe your setup..." :
-                "Continue the conversation..."
+                  conversationStep === 'awaiting_direction' ? "Which asset? (e.g., EURUSD, XAUUSD)" :
+                    conversationStep === 'awaiting_details' ? "Describe your setup..." :
+                      "Continue the conversation..."
               }
               className="w-full bg-gray-800 text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-trade-neon focus:ring-1 focus:ring-trade-neon transition"
               disabled={isAnalyzing || loadingRules}
@@ -489,8 +480,8 @@ User Details: ${tradeContext.details || currentInput}
               </div>
             )}
           </div>
-          
-          <button 
+
+          <button
             onClick={handleSendMessage}
             disabled={isAnalyzing || (!inputText && !selectedImage) || loadingRules}
             className="bg-gradient-to-br from-trade-accent to-blue-600 text-white p-3 rounded-lg hover:from-blue-600 hover:to-trade-accent disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center"
@@ -498,7 +489,7 @@ User Details: ${tradeContext.details || currentInput}
             <Send className="h-5 w-5" />
           </button>
         </div>
-        
+
         <div className="mt-3 text-xs text-gray-500 text-center flex flex-wrap justify-center gap-2">
           {loadingRules ? (
             <span>Loading your rules...</span>

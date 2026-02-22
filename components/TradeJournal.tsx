@@ -3,9 +3,9 @@ import { TradeEntry, TradeOutcome, TradeValidationStatus, User } from '../types'
 import { journalService } from '../services/journalService';
 import { supabase } from '../supabase/client';
 import { exportTradeJournal } from '../services/exportService';
-import { 
-  Plus, Search, Filter, ArrowUpRight, ArrowDownRight, MoreHorizontal, 
-  Calendar, DollarSign, Smile, Frown, Meh, Save, X, Upload, Image as ImageIcon, 
+import {
+  Plus, Search, Filter, ArrowUpRight, ArrowDownRight, MoreHorizontal,
+  Calendar, DollarSign, Smile, Frown, Meh, Save, X, Upload, Image as ImageIcon,
   Trash2, Eye, ArrowUpDown, ChevronDown, Loader2, Download, FileText, ChevronRight,
   CheckCircle, AlertCircle, XCircle
 } from 'lucide-react';
@@ -261,7 +261,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
       // Automatically determine trade status based on P&L if provided
       let status = formData.status || 'pending';
       const pnl = formData.pnl ? Number(formData.pnl) : undefined;
-      
+
       // If P&L is provided, automatically set status
       if (pnl !== undefined) {
         if (pnl > 0) {
@@ -272,7 +272,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
           status = 'breakeven';
         }
       }
-      
+
       // If exit price is provided but P&L is not, calculate P&L
       let calculatedPnl = pnl;
       if (formData.exitPrice && formData.entryPrice && calculatedPnl === undefined) {
@@ -281,7 +281,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
         const type = formData.type || 'buy';
         const pair = formData.pair || 'EURUSD';
         const positionSize = formData.positionSize ? Number(formData.positionSize) : 1; // Default to 1 lot
-        
+
         // Calculate P&L based on trade type and pair
         let priceDifference = 0;
         if (type === 'buy') {
@@ -289,18 +289,18 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
         } else {
           priceDifference = entryPrice - exitPrice;
         }
-        
+
         // Calculate pip value (simplified - in a real system this would be more complex)
         // For most pairs, 1 pip = 0.0001; for JPY pairs, 1 pip = 0.01
         const pipValue = pair.endsWith('JPY') ? 0.01 : 0.0001;
         const pips = priceDifference / pipValue;
-        
+
         // Standard lot = 100,000 units of base currency
         // Mini lot = 10,000 units
         // Micro lot = 1,000 units
         // Nano lot = 100 units
         calculatedPnl = pips * positionSize; // Simplified calculation
-        
+
         // Set status based on calculated P&L
         if (calculatedPnl > 0) {
           status = 'win';
@@ -310,7 +310,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
           status = 'breakeven';
         }
       }
-      
+
       // Validate that manually entered status matches calculated P&L
       if (pnl !== undefined && status !== formData.status) {
         if (!window.confirm(`The calculated outcome based on P&L (${calculatedPnl >= 0 ? (calculatedPnl > 0 ? 'Win' : 'Breakeven') : 'Loss'}) doesn't match the manually entered status (${formData.status}). Do you want to use the calculated outcome?`)) {
@@ -421,9 +421,9 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
   const processedEntries = useMemo(() => {
     // 1. Filter
     const filtered = entries.filter(entry => {
-      const matchesSearch = (entry.pair && entry.pair.toLowerCase().includes(searchTerm.toLowerCase())) || 
-                            (entry.notes && entry.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                            (entry.strategy && entry.strategy.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = (entry.pair && entry.pair.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (entry.notes && entry.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (entry.strategy && entry.strategy.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesType = filterType === 'all' || (entry.type && entry.type === filterType);
       const matchesOutcome = filterOutcome === 'all' || (entry.status && entry.status === filterOutcome);
       return matchesSearch && matchesType && matchesOutcome;
@@ -455,7 +455,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
     const losses = processedEntries.filter(e => e.status === 'loss').length;
     const winRate = total > 0 && (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
     const totalPnL = processedEntries.reduce((acc, curr) => acc + (curr.pnl || 0), 0);
-    
+
     return { total, winRate, totalPnL };
   }, [processedEntries]);
 
@@ -476,8 +476,8 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
     return (
       <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-6 text-center">
         <p className="text-red-200">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white"
         >
           Retry
@@ -491,7 +491,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
     if (!window.confirm('Are you sure you want to delete this trade entry? This action cannot be undone.')) {
       return;
     }
-    
+
     setDeleting(entryId);
     try {
       const success = await journalService.deleteJournalEntry(entryId);
@@ -522,124 +522,201 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
   };
 
   return (
-    <div className="text-white space-y-6">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+    <div className="text-white space-y-4 md:space-y-6 pb-24 md:pb-10">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Trade Journal</h1>
-          <p className="text-gray-400">Track your performance and psychology.</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Trade Journal</h1>
+          <p className="text-gray-400 text-sm">Track your performance and psychology.</p>
         </div>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => setShowExportModal(true)}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+            className="bg-gray-700 hover:bg-gray-600 active:scale-95 text-white px-3 py-2 rounded-xl flex items-center gap-2 transition text-sm"
           >
-            <Download className="h-5 w-5" /> Export
+            <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
           </button>
-          <button 
+          <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-trade-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-lg shadow-trade-accent/20"
+            className="bg-trade-accent hover:bg-blue-600 active:scale-95 text-white px-3 py-2 rounded-xl flex items-center gap-2 transition shadow-lg shadow-trade-accent/20 text-sm font-medium"
           >
-            <Plus className="h-5 w-5" /> New Entry
+            <Plus className="h-4 w-4" /> New Trade
           </button>
         </div>
       </div>
 
       {/* Dynamic Stats Overview (updates based on filters) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-trade-dark p-5 rounded-xl border border-gray-700 transition-all duration-300">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-            Win Rate <span className="text-[10px] bg-gray-800 px-1 rounded">Filtered</span>
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
+        <div className="bg-trade-dark p-3 md:p-5 rounded-xl border border-gray-700 transition-all duration-300">
+          <div className="flex items-center gap-1 text-gray-400 text-xs mb-1">
+            Win Rate <span className="text-[9px] bg-gray-800 px-1 rounded hidden sm:inline">Filtered</span>
           </div>
-          <div className={`text-3xl font-bold ${stats.winRate >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
+          <div className={`text-xl md:text-3xl font-bold ${stats.winRate >= 50 ? 'text-green-400' : 'text-yellow-400'}`}>
             {stats.winRate}%
           </div>
         </div>
-        <div className="bg-trade-dark p-5 rounded-xl border border-gray-700 transition-all duration-300">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-            Net P&L <span className="text-[10px] bg-gray-800 px-1 rounded">Filtered</span>
+        <div className="bg-trade-dark p-3 md:p-5 rounded-xl border border-gray-700 transition-all duration-300">
+          <div className="flex items-center gap-1 text-gray-400 text-xs mb-1">
+            Net P&L <span className="text-[9px] bg-gray-800 px-1 rounded hidden sm:inline">Filtered</span>
           </div>
-          <div className={`text-3xl font-bold ${stats.totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className={`text-xl md:text-3xl font-bold ${stats.totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             ${stats.totalPnL}
           </div>
         </div>
-        <div className="bg-trade-dark p-5 rounded-xl border border-gray-700">
-          <div className="text-gray-400 text-sm mb-1">Trades Found</div>
-          <div className="text-3xl font-bold text-white">{stats.total}</div>
+        <div className="bg-trade-dark p-3 md:p-5 rounded-xl border border-gray-700">
+          <div className="text-gray-400 text-xs mb-1">Trades</div>
+          <div className="text-xl md:text-3xl font-bold text-white">{stats.total}</div>
         </div>
       </div>
 
       {/* Controls Bar: Search, Filter, Sort */}
-      <div className="bg-trade-dark rounded-xl border border-gray-700 p-4 flex flex-col md:flex-row gap-4 items-center">
-          {/* Search */}
-          <div className="relative flex-1 w-full md:w-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Search pairs, notes..." 
-              className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-trade-accent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      <div className="bg-trade-dark rounded-xl border border-gray-700 p-3 md:p-4 space-y-3 md:space-y-0 md:flex md:flex-row md:gap-4 md:items-center">
+        {/* Search */}
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search pairs, notes..."
+            className="w-full bg-gray-800 border border-gray-600 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-trade-accent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-          {/* Filters */}
-          <div className="flex gap-2 w-full md:w-auto overflow-x-auto no-scrollbar">
-             <select 
-                className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-trade-accent"
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as any)}
-             >
-                <option value="all">All Types</option>
-                <option value="buy">Buys Only</option>
-                <option value="sell">Sells Only</option>
-             </select>
+        {/* Filters + Sort - Scrollable row on mobile */}
+        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+          <select
+            className="bg-gray-800 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-300 outline-none focus:border-trade-accent flex-shrink-0"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as any)}
+          >
+            <option value="all">All Types</option>
+            <option value="buy">Buys</option>
+            <option value="sell">Sells</option>
+          </select>
 
-             <select 
-                className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-trade-accent"
-                value={filterOutcome}
-                onChange={(e) => setFilterOutcome(e.target.value as any)}
-             >
-                <option value="all">All Outcomes</option>
-                <option value="win">Wins</option>
-                <option value="loss">Losses</option>
-                <option value="breakeven">Breakeven</option>
-             </select>
-          </div>
+          <select
+            className="bg-gray-800 border border-gray-600 rounded-xl px-3 py-2 text-sm text-gray-300 outline-none focus:border-trade-accent flex-shrink-0"
+            value={filterOutcome}
+            onChange={(e) => setFilterOutcome(e.target.value as any)}
+          >
+            <option value="all">All Outcomes</option>
+            <option value="win">Wins</option>
+            <option value="loss">Losses</option>
+            <option value="breakeven">Breakeven</option>
+          </select>
 
-          {/* Sort Actions */}
-          <div className="flex gap-2 w-full md:w-auto">
-            <button 
-                onClick={() => handleSort('date')}
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm border transition ${
-                  sortConfig.key === 'date' 
-                    ? 'bg-trade-accent/10 border-trade-accent text-trade-accent' 
-                    : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
-                }`}
-            >
-               <Calendar className="h-4 w-4" /> Date 
-               {sortConfig.key === 'date' && (
-                 <ArrowUpDown className={`h-3 w-3 ml-1 transition-transform ${sortConfig.direction === 'asc' ? 'rotate-180' : ''}`} />
-               )}
-            </button>
+          <button
+            onClick={() => handleSort('date')}
+            className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm border transition flex-shrink-0 ${sortConfig.key === 'date'
+              ? 'bg-trade-accent/10 border-trade-accent text-trade-accent'
+              : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
+              }`}
+          >
+            <Calendar className="h-4 w-4" /> Date
+            {sortConfig.key === 'date' && (
+              <ArrowUpDown className={`h-3 w-3 ml-1 transition-transform ${sortConfig.direction === 'asc' ? 'rotate-180' : ''}`} />
+            )}
+          </button>
 
-            <button 
-                onClick={() => handleSort('pnl')}
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm border transition ${
-                  sortConfig.key === 'pnl' 
-                    ? 'bg-trade-accent/10 border-trade-accent text-trade-accent' 
-                    : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
-                }`}
-            >
-               <DollarSign className="h-4 w-4" /> P&L
-               {sortConfig.key === 'pnl' && (
-                 <ArrowUpDown className={`h-3 w-3 ml-1 transition-transform ${sortConfig.direction === 'asc' ? 'rotate-180' : ''}`} />
-               )}
-            </button>
-          </div>
+          <button
+            onClick={() => handleSort('pnl')}
+            className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm border transition flex-shrink-0 ${sortConfig.key === 'pnl'
+              ? 'bg-trade-accent/10 border-trade-accent text-trade-accent'
+              : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
+              }`}
+          >
+            <DollarSign className="h-4 w-4" /> P&L
+            {sortConfig.key === 'pnl' && (
+              <ArrowUpDown className={`h-3 w-3 ml-1 transition-transform ${sortConfig.direction === 'asc' ? 'rotate-180' : ''}`} />
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-trade-dark rounded-xl border border-gray-700 overflow-hidden overflow-x-auto">
+      {/* ─── Mobile Card View (< md) ─────────────────────── */}
+      <div className="md:hidden space-y-3">
+        {processedEntries.length === 0 ? (
+          <div className="bg-trade-dark rounded-xl border border-gray-700 p-10 text-center">
+            <Search className="h-8 w-8 mb-3 text-gray-600 mx-auto" />
+            <p className="text-gray-400 font-medium">No trades found</p>
+            <p className="text-gray-600 text-sm mt-1">Adjust your filters or log a new trade.</p>
+          </div>
+        ) : (
+          processedEntries.map((entry) => (
+            <div key={entry.id} className="bg-trade-dark rounded-xl border border-gray-700 p-4 animate-slide-in">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {/* Type badge */}
+                  <span className={`px-2 py-1 rounded-lg text-xs font-bold uppercase flex items-center gap-1 flex-shrink-0 ${entry.type === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                    }`}>
+                    {entry.type === 'buy' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                    {entry.type}
+                  </span>
+                  <div>
+                    <span className="font-bold text-white text-base">{entry.pair}</span>
+                    <p className="text-xs text-gray-500 mt-0.5">{new Date(entry.date).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <div className="text-right flex flex-col items-end gap-1">
+                  <span className={`text-base font-bold font-mono ${entry.pnl && entry.pnl > 0 ? 'text-green-400' :
+                    entry.pnl && entry.pnl < 0 ? 'text-red-400' : 'text-gray-500'
+                    }`}>
+                    {entry.pnl ? (entry.pnl > 0 ? `+$${entry.pnl}` : `$${entry.pnl}`) : '-'}
+                  </span>
+                  <span className={`w-2.5 h-2.5 rounded-full inline-block ${entry.status === 'win' ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' :
+                    entry.status === 'loss' ? 'bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]' :
+                      entry.status === 'breakeven' ? 'bg-yellow-500' : 'bg-gray-500'
+                    }`} />
+                </div>
+              </div>
+
+              {entry.notes && (
+                <p className="text-gray-400 text-xs bg-gray-800/50 rounded-lg px-3 py-2 mb-3 line-clamp-2">{entry.notes}</p>
+              )}
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 text-xs text-gray-500">
+                  {entry.strategy && <span className="bg-gray-800 px-2 py-1 rounded-lg">{entry.strategy}</span>}
+                  {entry.timeFrame && <span className="bg-gray-800 px-2 py-1 rounded-lg">{entry.timeFrame}</span>}
+                </div>
+                <div className="flex gap-1">
+                  {entry.screenshotUrl && (
+                    <button
+                      onClick={() => setPreviewImage(entry.screenshotUrl!)}
+                      className="text-gray-400 hover:text-trade-accent transition p-2 rounded-lg hover:bg-gray-700"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleEditEntry(entry)}
+                    className="text-gray-400 hover:text-white transition p-2 rounded-lg hover:bg-gray-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                      <path d="m15 5 4 4" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteEntry(entry.id)}
+                    disabled={deleting === entry.id}
+                    className="text-gray-400 hover:text-red-400 transition p-2 rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                  >
+                    {deleting === entry.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ─── Desktop Table View (>= md) ───────────────────── */}
+      <div className="hidden md:block bg-trade-dark rounded-xl border border-gray-700 overflow-hidden overflow-x-auto">
         <table className="w-full text-left text-sm min-w-[800px]">
           <thead className="bg-gray-800 text-gray-400">
             <tr>
@@ -661,9 +738,8 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 </td>
                 <td className="p-4 font-bold text-white">{entry.pair}</td>
                 <td className="p-4">
-                  <span className={`px-2 py-1 rounded text-xs font-bold uppercase flex items-center gap-1 w-fit ${
-                    entry.type === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                  }`}>
+                  <span className={`px-2 py-1 rounded text-xs font-bold uppercase flex items-center gap-1 w-fit ${entry.type === 'buy' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                    }`}>
                     {entry.type === 'buy' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                     {entry.type}
                   </span>
@@ -673,7 +749,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 </td>
                 <td className="p-4 text-center">
                   {entry.screenshotUrl ? (
-                    <button 
+                    <button
                       onClick={() => setPreviewImage(entry.screenshotUrl!)}
                       className="text-gray-400 hover:text-trade-accent transition p-1.5 rounded-lg hover:bg-gray-700 bg-gray-800/50 border border-gray-700"
                       title="View Chart"
@@ -684,34 +760,32 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                     <span className="text-gray-700">-</span>
                   )}
                 </td>
-                <td className={`p-4 text-right font-mono font-bold ${
-                  entry.pnl && entry.pnl > 0 ? 'text-green-400' : 
+                <td className={`p-4 text-right font-mono font-bold ${entry.pnl && entry.pnl > 0 ? 'text-green-400' :
                   entry.pnl && entry.pnl < 0 ? 'text-red-400' : 'text-gray-500'
-                }`}>
+                  }`}>
                   {entry.pnl ? (entry.pnl > 0 ? `+$${entry.pnl}` : `$${entry.pnl}`) : '-'}
                 </td>
                 <td className="p-4 text-center">
                   <div className="flex justify-center">
-                    <span className={`w-2.5 h-2.5 rounded-full ${
-                        entry.status === 'win' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 
-                        entry.status === 'loss' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 
+                    <span className={`w-2.5 h-2.5 rounded-full ${entry.status === 'win' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' :
+                      entry.status === 'loss' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' :
                         entry.status === 'breakeven' ? 'bg-yellow-500' : 'bg-gray-500'
-                    }`}></span>
+                      }`}></span>
                   </div>
                 </td>
                 <td className="p-4 text-right">
                   <div className="flex justify-end gap-1">
-                    <button 
+                    <button
                       onClick={() => handleEditEntry(entry)}
                       className="text-gray-400 hover:text-white transition p-1.5 rounded-lg hover:bg-gray-700"
                       title="Edit Entry"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                        <path d="m15 5 4 4"/>
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                        <path d="m15 5 4 4" />
                       </svg>
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteEntry(entry.id)}
                       disabled={deleting === entry.id}
                       className="text-gray-400 hover:text-red-400 transition p-1.5 rounded-lg hover:bg-gray-700 disabled:opacity-50"
@@ -730,11 +804,11 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
             {processedEntries.length === 0 && (
               <tr>
                 <td colSpan={8} className="p-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-gray-500">
-                        <Search className="h-8 w-8 mb-3 opacity-50" />
-                        <p className="text-lg font-medium">No trades found</p>
-                        <p className="text-sm">Try adjusting your filters or search term.</p>
-                    </div>
+                  <div className="flex flex-col items-center justify-center text-gray-500">
+                    <Search className="h-8 w-8 mb-3 opacity-50" />
+                    <p className="text-lg font-medium">No trades found</p>
+                    <p className="text-sm">Try adjusting your filters or search term.</p>
+                  </div>
                 </td>
               </tr>
             )}
@@ -746,16 +820,16 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
       {previewImage && (
         <div className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center" onClick={e => e.stopPropagation()}>
-            <button 
+            <button
               onClick={() => setPreviewImage(null)}
               className="absolute -top-12 right-0 text-gray-400 hover:text-white p-2"
             >
               <X className="h-8 w-8" />
             </button>
-            <img 
-              src={previewImage} 
-              alt="Trade Preview" 
-              className="max-w-full max-h-[85vh] object-contain rounded-lg border border-gray-700 shadow-2xl" 
+            <img
+              src={previewImage}
+              alt="Trade Preview"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg border border-gray-700 shadow-2xl"
             />
           </div>
         </div>
@@ -763,8 +837,8 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
 
       {/* Add Entry Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-trade-dark border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl my-8 animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 overflow-y-auto">
+          <div className="bg-trade-dark border border-gray-700 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl shadow-2xl sm:my-8 animate-in fade-in slide-in-from-bottom-4 sm:zoom-in duration-200">
             <form onSubmit={handleSubmit}>
               <div className="flex justify-between items-center p-6 border-b border-gray-700 bg-gray-800/50 rounded-t-2xl">
                 <h2 className="text-xl font-bold text-white">
@@ -774,28 +848,28 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              
+
               <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                 {/* Top Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="col-span-1">
                     <label className="block text-xs text-gray-400 mb-1">Pair</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-trade-accent outline-none uppercase font-bold"
                       value={formData.pair}
-                      onChange={e => setFormData({...formData, pair: e.target.value.toUpperCase()})}
+                      onChange={e => setFormData({ ...formData, pair: e.target.value.toUpperCase() })}
                     />
                   </div>
                   <div className="col-span-1">
                     <label className="block text-xs text-gray-400 mb-1">Date</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       required
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-trade-accent outline-none"
                       value={formData.date ? new Date(formData.date).toISOString().split('T')[0] : ''}
-                      onChange={e => setFormData({...formData, date: e.target.value})}
+                      onChange={e => setFormData({ ...formData, date: e.target.value })}
                     />
                   </div>
                   <div className="col-span-2">
@@ -804,14 +878,14 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                       <button
                         type="button"
                         className={`flex-1 py-2 rounded font-bold text-sm flex items-center justify-center gap-2 border transition ${formData.type === 'buy' ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-gray-900 border-gray-600 text-gray-500 hover:bg-gray-800'}`}
-                        onClick={() => setFormData({...formData, type: 'buy'})}
+                        onClick={() => setFormData({ ...formData, type: 'buy' })}
                       >
                         <ArrowUpRight className="h-4 w-4" /> BUY
                       </button>
                       <button
                         type="button"
                         className={`flex-1 py-2 rounded font-bold text-sm flex items-center justify-center gap-2 border transition ${formData.type === 'sell' ? 'bg-red-500/20 border-red-500 text-red-400' : 'bg-gray-900 border-gray-600 text-gray-500 hover:bg-gray-800'}`}
-                        onClick={() => setFormData({...formData, type: 'sell'})}
+                        onClick={() => setFormData({ ...formData, type: 'sell' })}
                       >
                         <ArrowDownRight className="h-4 w-4" /> SELL
                       </button>
@@ -823,80 +897,79 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-800/30 p-4 rounded-lg border border-gray-700">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Entry Price</label>
-                    <input 
+                    <input
                       type="number" step="0.00001"
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none focus:border-blue-500"
                       value={formData.entryPrice || ''}
-                      onChange={e => setFormData({...formData, entryPrice: e.target.value ? Number(e.target.value) : undefined})}
+                      onChange={e => setFormData({ ...formData, entryPrice: e.target.value ? Number(e.target.value) : undefined })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Stop Loss</label>
-                    <input 
+                    <input
                       type="number" step="0.00001"
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none text-red-400 focus:border-red-500"
                       value={formData.stopLoss || ''}
-                      onChange={e => setFormData({...formData, stopLoss: e.target.value ? Number(e.target.value) : undefined})}
+                      onChange={e => setFormData({ ...formData, stopLoss: e.target.value ? Number(e.target.value) : undefined })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Take Profit</label>
-                    <input 
+                    <input
                       type="number" step="0.00001"
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none text-green-400 focus:border-green-500"
                       value={formData.takeProfit || ''}
-                      onChange={e => setFormData({...formData, takeProfit: e.target.value ? Number(e.target.value) : undefined})}
+                      onChange={e => setFormData({ ...formData, takeProfit: e.target.value ? Number(e.target.value) : undefined })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Exit Price</label>
-                    <input 
+                    <input
                       type="number" step="0.00001"
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none"
                       value={formData.exitPrice || ''}
-                      onChange={e => setFormData({...formData, exitPrice: e.target.value ? Number(e.target.value) : undefined})}
+                      onChange={e => setFormData({ ...formData, exitPrice: e.target.value ? Number(e.target.value) : undefined })}
                     />
                   </div>
                 </div>
 
                 {/* Outcome & PnL */}
                 <div className="grid grid-cols-2 gap-4">
-                   <div>
+                  <div>
                     <label className="block text-xs text-gray-400 mb-1">Outcome</label>
-                    <select 
+                    <select
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none"
                       value={formData.status || 'pending'}
-                      onChange={e => setFormData({...formData, status: e.target.value as TradeOutcome})}
+                      onChange={e => setFormData({ ...formData, status: e.target.value as TradeOutcome })}
                     >
                       <option value="pending">Pending / Open</option>
                       <option value="win">Win</option>
                       <option value="loss">Loss</option>
                       <option value="breakeven">Breakeven</option>
                     </select>
-                   </div>
-                   <div>
+                  </div>
+                  <div>
                     <label className="block text-xs text-gray-400 mb-1">Realized P&L ($)</label>
-                    <input 
+                    <input
                       type="number"
                       placeholder="0.00"
-                      className={`w-full bg-gray-900 border border-gray-600 rounded p-2 outline-none font-bold ${
-                        (formData.pnl || 0) > 0 ? 'text-green-400' : (formData.pnl || 0) < 0 ? 'text-red-400' : 'text-white'
-                      }`}
+                      className={`w-full bg-gray-900 border border-gray-600 rounded p-2 outline-none font-bold ${(formData.pnl || 0) > 0 ? 'text-green-400' : (formData.pnl || 0) < 0 ? 'text-red-400' : 'text-white'
+                        }`}
                       value={formData.pnl || ''}
-                      onChange={e => setFormData({...formData, pnl: e.target.value ? Number(e.target.value) : undefined})}
+                      onChange={e => setFormData({ ...formData, pnl: e.target.value ? Number(e.target.value) : undefined })}
                     />
-                   </div>
+                  </div>
                 </div>
 
                 {/* Notes */}
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Setup Notes</label>
-                  <textarea 
+                  <textarea
                     rows={3}
                     className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none resize-none focus:border-trade-accent"
                     placeholder="Describe your confluence (e.g., 15m FVG, Liquidity Sweep...)"
                     value={formData.notes}
-                    onChange={e => setFormData({...formData, notes: e.target.value})}
+                    onChange={e => setFormData({ ...formData, notes: e.target.value })}
                   />
                 </div>
 
@@ -904,42 +977,42 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 <div>
                   <label className="block text-xs text-gray-400 mb-2">Chart Screenshot</label>
                   <div className="border-2 border-dashed border-gray-700 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-800/30 hover:bg-gray-800/50 transition relative">
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       ref={fileInputRef}
-                      onChange={handleImageUpload} 
-                      accept="image/*" 
-                      className="hidden" 
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                      className="hidden"
                     />
-                    
+
                     {formData.screenshotUrl ? (
                       <div className="relative w-full group">
-                        <img 
-                          src={formData.screenshotUrl} 
-                          alt="Trade Setup" 
-                          className="w-full h-48 object-contain rounded-lg bg-black/50" 
+                        <img
+                          src={formData.screenshotUrl}
+                          alt="Trade Setup"
+                          className="w-full h-48 object-contain rounded-lg bg-black/50"
                         />
                         <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <button 
-                                type="button"
-                                onClick={() => setPreviewImage(formData.screenshotUrl!)}
-                                className="bg-gray-900/80 p-2 rounded text-white hover:text-trade-accent"
-                                title="View Fullscreen"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </button>
-                              <button 
-                                type="button"
-                                onClick={clearImage}
-                                className="bg-red-500/80 p-2 rounded text-white hover:bg-red-600"
-                                title="Remove Image"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewImage(formData.screenshotUrl!)}
+                            className="bg-gray-900/80 p-2 rounded text-white hover:text-trade-accent"
+                            title="View Fullscreen"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={clearImage}
+                            className="bg-red-500/80 p-2 rounded text-white hover:bg-red-600"
+                            title="Remove Image"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
                     ) : (
-                      <div 
+                      <div
                         className="text-center cursor-pointer w-full py-4"
                         onClick={() => fileInputRef.current?.click()}
                       >
@@ -962,11 +1035,10 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                         key={emo}
                         type="button"
                         onClick={() => toggleEmotion(emo)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition border ${
-                          formData.emotions?.includes(emo) 
-                            ? 'bg-blue-500 text-white border-blue-500' 
-                            : 'bg-gray-800 text-gray-400 border-gray-600 hover:border-gray-400'
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition border ${formData.emotions?.includes(emo)
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'bg-gray-800 text-gray-400 border-gray-600 hover:border-gray-400'
+                          }`}
                       >
                         {emo}
                       </button>
@@ -978,10 +1050,10 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Strategy</label>
-                    <select 
+                    <select
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-trade-accent outline-none"
                       value={formData.strategy || ''}
-                      onChange={e => setFormData({...formData, strategy: e.target.value})}
+                      onChange={e => setFormData({ ...formData, strategy: e.target.value })}
                     >
                       <option value="">Select Strategy</option>
                       {STRATEGIES.map(strategy => (
@@ -991,10 +1063,10 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Time Frame</label>
-                    <select 
+                    <select
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-trade-accent outline-none"
                       value={formData.timeFrame || ''}
-                      onChange={e => setFormData({...formData, timeFrame: e.target.value})}
+                      onChange={e => setFormData({ ...formData, timeFrame: e.target.value })}
                     >
                       <option value="">Select Time Frame</option>
                       {TIME_FRAMES.map(tf => (
@@ -1008,10 +1080,10 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Market Condition</label>
-                    <select 
+                    <select
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-trade-accent outline-none"
                       value={formData.marketCondition || ''}
-                      onChange={e => setFormData({...formData, marketCondition: e.target.value})}
+                      onChange={e => setFormData({ ...formData, marketCondition: e.target.value })}
                     >
                       <option value="">Select Condition</option>
                       {MARKET_CONDITIONS.map(condition => (
@@ -1021,12 +1093,12 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Confidence Level: {formData.confidenceLevel || 5}/10</label>
-                    <input 
-                      type="range" 
-                      min="1" 
-                      max="10" 
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
                       value={formData.confidenceLevel || 5}
-                      onChange={e => setFormData({...formData, confidenceLevel: Number(e.target.value)})}
+                      onChange={e => setFormData({ ...formData, confidenceLevel: Number(e.target.value) })}
                       className="w-full accent-trade-accent"
                     />
                   </div>
@@ -1036,22 +1108,22 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Risk Amount ($)</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       step="0.01"
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none focus:border-blue-500"
                       value={formData.riskAmount || ''}
-                      onChange={e => setFormData({...formData, riskAmount: e.target.value ? Number(e.target.value) : undefined})}
+                      onChange={e => setFormData({ ...formData, riskAmount: e.target.value ? Number(e.target.value) : undefined })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Position Size</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       step="0.01"
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none focus:border-blue-500"
                       value={formData.positionSize || ''}
-                      onChange={e => setFormData({...formData, positionSize: e.target.value ? Number(e.target.value) : undefined})}
+                      onChange={e => setFormData({ ...formData, positionSize: e.target.value ? Number(e.target.value) : undefined })}
                     />
                   </div>
                 </div>
@@ -1060,20 +1132,20 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Trade Duration</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="e.g., PT30M for 30 minutes"
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white outline-none focus:border-trade-accent"
                       value={formData.tradeDuration || ''}
-                      onChange={e => setFormData({...formData, tradeDuration: e.target.value})}
+                      onChange={e => setFormData({ ...formData, tradeDuration: e.target.value })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1">Trade Source</label>
-                    <select 
+                    <select
                       className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-trade-accent outline-none"
                       value={formData.tradeSource || 'demo'}
-                      onChange={e => setFormData({...formData, tradeSource: e.target.value as 'demo' | 'live' | 'paper'})}
+                      onChange={e => setFormData({ ...formData, tradeSource: e.target.value as 'demo' | 'live' | 'paper' })}
                     >
                       {TRADE_SOURCES.map(source => (
                         <option key={source} value={source.toLowerCase()}>{source}</option>
@@ -1091,11 +1163,10 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                         key={tag}
                         type="button"
                         onClick={() => toggleTag(tag)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition border ${
-                          formData.tags?.includes(tag) 
-                            ? 'bg-blue-500 text-white border-blue-500' 
-                            : 'bg-gray-800 text-gray-400 border-gray-600 hover:border-gray-400'
-                        }`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition border ${formData.tags?.includes(tag)
+                          ? 'bg-blue-500 text-white border-blue-500'
+                          : 'bg-gray-800 text-gray-400 border-gray-600 hover:border-gray-400'
+                          }`}
                       >
                         {tag}
                       </button>
@@ -1107,26 +1178,26 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
               </div>
 
               <div className="p-6 border-t border-gray-700 flex justify-end gap-3 bg-gray-800/50 rounded-b-2xl">
-                <button 
+                <button
                   type="button"
                   onClick={handleCloseModal}
                   className="px-4 py-2 text-gray-400 hover:text-white transition"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={saving}
                   className="px-6 py-2 bg-trade-accent hover:bg-blue-600 text-white rounded-lg font-medium flex items-center gap-2 transition shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> 
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="h-4 w-4" /> 
+                      <Save className="h-4 w-4" />
                       {editingEntry ? 'Update Entry' : 'Save Entry'}
                     </>
                   )}
@@ -1143,17 +1214,17 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
           <div className="bg-trade-dark border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl my-8 animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center p-6 border-b border-gray-700 bg-gray-800/50 rounded-t-2xl">
               <h2 className="text-xl font-bold text-white">Export Trade Journal</h2>
-              <button 
-                onClick={() => setShowExportModal(false)} 
+              <button
+                onClick={() => setShowExportModal(false)}
                 className="text-gray-400 hover:text-white"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-6">
               <p className="text-gray-300">Choose a format to export your trade journal:</p>
-              
+
               <div className="space-y-4">
                 <button
                   onClick={() => handleExport('csv')}
@@ -1170,7 +1241,7 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                   </div>
                   <ChevronRight className="h-5 w-5 text-gray-400" />
                 </button>
-                
+
                 <button
                   onClick={() => handleExport('pdf')}
                   className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg p-4 flex items-center justify-between transition"
@@ -1187,14 +1258,14 @@ const TradeJournal: React.FC<TradeJournalProps> = ({ user }) => {
                   <ChevronRight className="h-5 w-5 text-gray-400" />
                 </button>
               </div>
-              
+
               <div className="text-xs text-gray-500 mt-4">
                 <p>Exporting {entries.length} trade entries</p>
               </div>
             </div>
-            
+
             <div className="p-6 border-t border-gray-700 flex justify-end gap-3 bg-gray-800/50 rounded-b-2xl">
-              <button 
+              <button
                 onClick={() => setShowExportModal(false)}
                 className="px-4 py-2 text-gray-400 hover:text-white transition"
               >

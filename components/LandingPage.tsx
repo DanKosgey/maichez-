@@ -14,14 +14,14 @@ interface LandingPageProps {
 const TradingVisualization: React.FC<{ mode: 'bull' | 'bear' }> = ({ mode }) => {
   const controls = useAnimation();
   const [activeNodes, setActiveNodes] = useState<number[]>([]);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       const newNodes = Array.from({ length: 3 }, () => Math.floor(Math.random() * 8));
       setActiveNodes(newNodes);
       setTimeout(() => setActiveNodes([]), 800);
     }, 1200);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -33,7 +33,7 @@ const TradingVisualization: React.FC<{ mode: 'bull' | 'bear' }> = ({ mode }) => 
   }, [controls]);
 
   return (
-    <motion.div 
+    <motion.div
       animate={controls}
       className="relative w-full h-48 flex items-center justify-center"
     >
@@ -47,10 +47,10 @@ const TradingVisualization: React.FC<{ mode: 'bull' | 'bear' }> = ({ mode }) => 
               <stop offset="100%" stopColor={mode === 'bull' ? "#10b981" : "#f97316"} />
             </linearGradient>
             <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
               <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -109,7 +109,7 @@ const TradingVisualization: React.FC<{ mode: 'bull' | 'bear' }> = ({ mode }) => 
                 cy={node.y}
                 r="8"
                 fill={mode === 'bull' ? "#06b6d4" : "#ef4444"}
-                animate={{ 
+                animate={{
                   scale: activeNodes.includes(node.id) ? [0, 1.5, 0] : 0,
                   opacity: activeNodes.includes(node.id) ? [0.5, 0.8, 0] : 0
                 }}
@@ -219,15 +219,14 @@ const TradingVisualization: React.FC<{ mode: 'bull' | 'bear' }> = ({ mode }) => 
         {[...Array(12)].map((_, i) => (
           <motion.div
             key={i}
-            className={`absolute text-xs font-bold ${
-              mode === 'bull' ? 'text-green-400' : 'text-red-400'
-            }`}
+            className={`absolute text-xs font-bold ${mode === 'bull' ? 'text-green-400' : 'text-red-400'
+              }`}
             style={{
               left: `${Math.random() * 80 + 10}%`,
               top: `${Math.random() * 60 + 20}%`,
             }}
             animate={{
-              y: mode === 'bull' 
+              y: mode === 'bull'
                 ? [0, -20 - Math.random() * 30, 0]
                 : [0, 20 + Math.random() * 30, 0],
               opacity: [0, 1, 0],
@@ -316,40 +315,40 @@ const TradingVisualization: React.FC<{ mode: 'bull' | 'bear' }> = ({ mode }) => 
 // Enhanced Market Vibe Visualization with new animation
 const MarketVibeVisualization: React.FC<{ vibe: 'bull' | 'bear' }> = ({ vibe }) => {
   const controls = useAnimation();
-  
+
   useEffect(() => {
     controls.start({
       scale: [1, 1.02, 1],
       transition: { duration: 4, repeat: Infinity, ease: "easeInOut" }
     });
   }, [controls]);
-  
+
   return (
-    <motion.div 
+    <motion.div
       animate={controls}
       className="relative w-full h-48 flex items-center justify-center"
     >
       {/* Animated background with gradient mesh */}
-      <motion.div 
+      <motion.div
         className="absolute inset-0 rounded-2xl overflow-hidden"
         animate={{
-          background: vibe === 'bull' 
+          background: vibe === 'bull'
             ? [
-                'radial-gradient(circle at 20% 20%, rgba(6,182,212,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.2), transparent 50%)',
-                'radial-gradient(circle at 80% 20%, rgba(6,182,212,0.3), transparent 50%), radial-gradient(circle at 20% 80%, rgba(16,185,129,0.2), transparent 50%)',
-                'radial-gradient(circle at 20% 20%, rgba(6,182,212,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.2), transparent 50%)'
-              ]
+              'radial-gradient(circle at 20% 20%, rgba(6,182,212,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.2), transparent 50%)',
+              'radial-gradient(circle at 80% 20%, rgba(6,182,212,0.3), transparent 50%), radial-gradient(circle at 20% 80%, rgba(16,185,129,0.2), transparent 50%)',
+              'radial-gradient(circle at 20% 20%, rgba(6,182,212,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(16,185,129,0.2), transparent 50%)'
+            ]
             : [
-                'radial-gradient(circle at 20% 20%, rgba(239,68,68,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(249,115,22,0.2), transparent 50%)',
-                'radial-gradient(circle at 80% 20%, rgba(239,68,68,0.3), transparent 50%), radial-gradient(circle at 20% 80%, rgba(249,115,22,0.2), transparent 50%)',
-                'radial-gradient(circle at 20% 20%, rgba(239,68,68,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(249,115,22,0.2), transparent 50%)'
-              ]
+              'radial-gradient(circle at 20% 20%, rgba(239,68,68,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(249,115,22,0.2), transparent 50%)',
+              'radial-gradient(circle at 80% 20%, rgba(239,68,68,0.3), transparent 50%), radial-gradient(circle at 20% 80%, rgba(249,115,22,0.2), transparent 50%)',
+              'radial-gradient(circle at 20% 20%, rgba(239,68,68,0.3), transparent 50%), radial-gradient(circle at 80% 80%, rgba(249,115,22,0.2), transparent 50%)'
+            ]
         }}
         transition={{ duration: 8, repeat: Infinity }}
       />
-      
+
       {/* Grid overlay */}
-      <div 
+      <div
         className="absolute inset-0 opacity-10"
         style={{
           backgroundImage: `linear-gradient(${vibe === 'bull' ? '#06b6d4' : '#ef4444'} 1px, transparent 1px),
@@ -357,18 +356,18 @@ const MarketVibeVisualization: React.FC<{ vibe: 'bull' | 'bear' }> = ({ vibe }) 
           backgroundSize: '20px 20px',
         }}
       />
-      
+
       {/* Glow border effect */}
       <motion.div
         className="absolute inset-0 rounded-2xl"
         animate={{
-          boxShadow: vibe === 'bull' 
+          boxShadow: vibe === 'bull'
             ? 'inset 0 0 40px rgba(6,182,212,0.4), 0 0 40px rgba(6,182,212,0.3)'
             : 'inset 0 0 40px rgba(239,68,68,0.4), 0 0 40px rgba(239,68,68,0.3)'
         }}
         initial={false}
       />
-      
+
       {/* New Trading Visualization */}
       <TradingVisualization mode={vibe} />
     </motion.div>
@@ -386,10 +385,10 @@ const FloatingParticles: React.FC = () => {
           style={{
             width: Math.random() * 25 + 5,
             height: Math.random() * 25 + 5,
-            background: i % 4 === 0 
-              ? 'radial-gradient(circle, rgba(6,182,212,0.8), transparent)' 
-              : i % 4 === 1 
-                ? 'radial-gradient(circle, rgba(239,68,68,0.8), transparent)' 
+            background: i % 4 === 0
+              ? 'radial-gradient(circle, rgba(6,182,212,0.8), transparent)'
+              : i % 4 === 1
+                ? 'radial-gradient(circle, rgba(239,68,68,0.8), transparent)'
                 : i % 4 === 2
                   ? 'radial-gradient(circle, rgba(255,213,79,0.8), transparent)'
                   : 'radial-gradient(circle, rgba(16,185,129,0.8), transparent)',
@@ -416,10 +415,10 @@ const FloatingParticles: React.FC = () => {
 };
 
 // New Component: Animated Stats Counter
-const AnimatedCounter: React.FC<{ end: number; duration?: number; label: string }> = ({ 
-  end, 
-  duration = 2, 
-  label 
+const AnimatedCounter: React.FC<{ end: number; duration?: number; label: string }> = ({
+  end,
+  duration = 2,
+  label
 }) => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
@@ -466,7 +465,7 @@ const InteractiveFeatureCard: React.FC<{
   delay?: number;
 }> = ({ icon: Icon, title, description, delay = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -478,7 +477,7 @@ const InteractiveFeatureCard: React.FC<{
       className="bg-white p-8 rounded-2xl border border-slate-200 hover:border-brand-primary/30 hover:shadow-xl transition-all cursor-pointer group"
     >
       <motion.div
-        animate={{ 
+        animate={{
           scale: isHovered ? 1.1 : 1,
           rotate: isHovered ? 5 : 0
         }}
@@ -487,15 +486,15 @@ const InteractiveFeatureCard: React.FC<{
       >
         <Icon className="h-7 w-7 text-brand-primary" />
       </motion.div>
-      
+
       <h3 className="text-xl font-bold mb-3 group-hover:text-brand-primary transition-colors">
         {title}
       </h3>
-      
+
       <p className="text-slate-600 leading-relaxed">
         {description}
       </p>
-      
+
       {/* Animated underline on hover */}
       <motion.div
         initial={{ scaleX: 0 }}
@@ -535,9 +534,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
   useEffect(() => {
     const interval = setInterval(() => {
       setMarketVibe(prev => prev === 'bull' ? 'bear' : 'bull');
-      controls.start({ 
-        scale: [1, 1.03, 1], 
-        transition: { duration: 0.8, ease: 'easeInOut' } 
+      controls.start({
+        scale: [1, 1.03, 1],
+        transition: { duration: 0.8, ease: 'easeInOut' }
       });
     }, 6000);
     return () => clearInterval(interval);
@@ -545,26 +544,26 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
 
   const sectionVariants: Variants = {
     hidden: { opacity: 0, y: 60 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
-        duration: 0.8, 
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
         staggerChildren: 0.3,
         ease: "easeOut"
-      } 
+      }
     }
   };
 
   const childVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
         duration: 0.6,
         ease: "easeOut"
-      } 
+      }
     }
   };
 
@@ -586,7 +585,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
         </div>
 
         {/* Enhanced Navbar with blur and scale animation */}
-        <motion.nav 
+        <motion.nav
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -610,8 +609,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
 
             <div className="flex items-center gap-3 sm:gap-4">
               <motion.button
-                whileHover={{ 
-                  scale: 1.05, 
+                whileHover={{
+                  scale: 1.05,
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   backgroundColor: '#1e293b'
                 }}
@@ -644,7 +643,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-brand-primary/15 to-cyan-500/15 border border-brand-primary/30 px-4 py-2 sm:px-6 sm:py-3 rounded-full mb-6 sm:mb-8 shadow-lg backdrop-blur-sm relative overflow-hidden"
             >
               <motion.div
-                animate={{ 
+                animate={{
                   scale: [1, 1.2, 1],
                   rotate: [0, 5, -5, 0]
                 }}
@@ -670,7 +669,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 initial={{ opacity: 0, y: 60 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.2 }}
-                className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 sm:mb-8 leading-tight tracking-tight"
+                className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-6 sm:mb-8 leading-tight tracking-tight px-2"
               >
                 <motion.span
                   initial={{ opacity: 0, x: -50 }}
@@ -733,8 +732,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center"
             >
               <motion.button
-                whileHover={{ 
-                  scale: 1.05, 
+                whileHover={{
+                  scale: 1.05,
                   boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
                 }}
                 whileTap={{ scale: 0.95 }}
@@ -742,7 +741,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 className="group relative px-8 sm:px-12 py-4 sm:py-5 bg-slate-900 text-white font-black text-lg sm:text-xl rounded-2xl overflow-hidden shadow-2xl w-full sm:w-auto max-w-sm"
               >
                 <span className="relative z-10 flex items-center justify-center gap-3">
-                  Start Trading Smarter 
+                  Start Trading Smarter
                   <motion.div
                     animate={{ x: [0, 4, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
@@ -779,7 +778,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
               </p>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               variants={sectionVariants}
               className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto"
             >
@@ -878,7 +877,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 />
               </div>
             ) : subscriptionPlans.length > 0 ? (
-              <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto" variants={sectionVariants}>
+              <motion.div
+                className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto overflow-x-auto pb-8 md:pb-0 no-scrollbar snap-x touch-pan-x"
+                variants={sectionVariants}
+              >
                 {subscriptionPlans.map((plan, index) => {
                   const isPopular = plan.name === 'Professional';
                   const isElite = plan.name === 'Elite Mentorship';
@@ -888,7 +890,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                       key={plan.id}
                       variants={childVariants}
                       custom={index}
-                      className={`bg-slate-50 border rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col ${isPopular ? 'border-2 border-brand-primary relative shadow-xl scale-105' : 'border border-slate-200'} hover:shadow-2xl transition-shadow`}
+                      className={`bg-slate-50 border rounded-2xl sm:rounded-3xl p-6 sm:p-8 flex flex-col w-[280px] md:w-auto flex-shrink-0 snap-center ${isPopular ? 'border-2 border-brand-primary relative shadow-xl scale-[1.02] md:scale-105 my-2 md:my-0' : 'border border-slate-200'} hover:shadow-2xl transition-all`}
                       whileHover={{ y: -5 }}
                     >
                       {isPopular && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-brand-primary text-white font-bold px-3 py-1 sm:px-4 sm:py-1 rounded-full text-xs sm:text-sm shadow-md">MOST POPULAR</div>}
@@ -1049,7 +1051,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                               radial-gradient(circle at 40% 40%, rgba(16,185,129,0.2) 0%, transparent 50%)`
             }}
           />
-          
+
           <div className="container mx-auto px-4 sm:px-6 relative z-10">
             <motion.h2
               initial={{ opacity: 0, y: 30 }}
@@ -1059,7 +1061,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
             >
               Ready to Transform Your Trading?
             </motion.h2>
-            
+
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1070,19 +1072,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
             </motion.p>
 
             <motion.div
-              animate={{ 
+              animate={{
                 y: [0, -10, 0],
                 scale: [1, 1.02, 1]
               }}
-              transition={{ 
-                repeat: Infinity, 
-                duration: 2, 
-                ease: 'easeInOut' 
+              transition={{
+                repeat: Infinity,
+                duration: 2,
+                ease: 'easeInOut'
               }}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
             >
               <motion.button
-                whileHover={{ 
+                whileHover={{
                   scale: 1.05,
                   boxShadow: '0 10px 40px rgba(0,0,0,0.4)'
                 }}
@@ -1091,7 +1093,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                 className="px-10 sm:px-16 py-5 sm:py-6 bg-slate-900 text-white text-xl sm:text-2xl font-black rounded-2xl shadow-2xl hover:shadow-3xl transition-all relative overflow-hidden group"
               >
                 <span className="relative z-10 flex items-center justify-center gap-3">
-                  Start Your Journey 
+                  Start Your Journey
                   <motion.div
                     animate={{ rotate: [0, 360] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -1099,7 +1101,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                     <Sparkles className="h-6 w-6" />
                   </motion.div>
                 </span>
-                
+
                 {/* Shimmer effect */}
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
