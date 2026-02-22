@@ -24,7 +24,8 @@ type AdminTab =
   | 'journal'
   | 'admin-analytics'
   | 'settings'
-  | 'student-management';
+  | 'student-management'
+  | 'bot-inquiries';
 
 interface AdminPortalContextType {
   activeTab: AdminTab;

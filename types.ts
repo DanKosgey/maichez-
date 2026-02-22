@@ -9,6 +9,7 @@ export interface User {
   subscriptionTier: 'free' | 'foundation' | 'professional' | 'elite' | 'elite-pending';
   progress: number;
   botAccess: boolean;
+  botPurchaseStatus: 'none' | 'pending' | 'completed';
 }
 
 export interface TradeRule {
@@ -151,6 +152,7 @@ export interface StudentProfile {
   email: string;
   tier: 'free' | 'foundation' | 'professional' | 'elite';
   botAccess: boolean;
+  botPurchaseStatus: 'none' | 'pending' | 'completed';
   joinedDate: string;
   stats: {
     winRate: number;
@@ -237,4 +239,15 @@ export interface Todo {
   completed: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface BotAsset {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  fileSize: string;
+  version: string;
+  type: 'mql5' | 'manual' | 'preset' | 'folder';
+  createdAt: string;
 }

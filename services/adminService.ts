@@ -1,5 +1,5 @@
 import { supabase } from '../supabase/client';
-import { StudentProfile, CourseModule, TradeEntry } from '../types';
+import { StudentProfile, CourseModule, TradeEntry, BotAsset } from '../types';
 
 // Function to fetch all students with their stats for admin portal
 export const fetchAllStudents = async (): Promise<StudentProfile[]> => {
@@ -16,6 +16,7 @@ export const fetchAllStudents = async (): Promise<StudentProfile[]> => {
       email: student.email,
       tier: student.tier,
       botAccess: student.bot_access || false,
+      botPurchaseStatus: student.bot_purchase_status || 'none',
       joinedDate: student.joined_date,
       status: student.status,
       stats: {
@@ -381,6 +382,7 @@ export const fetchStudentWithTrades = async (studentId: string): Promise<Student
       email: profileData.email,
       tier: profileData.subscription_tier,
       botAccess: profileData.bot_access || false,
+      botPurchaseStatus: profileData.bot_purchase_status || 'none',
       joinedDate: profileData.joined_date,
       status,
       stats: {
@@ -729,6 +731,7 @@ export const fetchPendingApplications = async (): Promise<StudentProfile[]> => {
       email: user.email,
       tier: user.subscription_tier,
       botAccess: user.bot_access || false,
+      botPurchaseStatus: user.bot_purchase_status || 'none',
       joinedDate: user.joined_date,
       status: 'active', // Pending applications are considered active
       stats: {
@@ -757,6 +760,7 @@ export const updateStudentProfile = async (studentId: string, updates: Partial<S
     if (updates.email !== undefined) dbUpdates.email = updates.email;
     if (updates.tier !== undefined) dbUpdates.subscription_tier = updates.tier;
     if (updates.botAccess !== undefined) dbUpdates.bot_access = updates.botAccess;
+    if (updates.botPurchaseStatus !== undefined) dbUpdates.bot_purchase_status = updates.botPurchaseStatus;
 
     const { data, error } = await supabase
       .from('profiles')
@@ -775,6 +779,113 @@ export const updateStudentProfile = async (studentId: string, updates: Partial<S
     return data[0];
   } catch (error) {
     console.error('Error updating student profile:', error);
+    throw error;
+  }
+};
+
+// Function to fetch all bot assets
+export const fetchBotAssets = async (): Promise<BotAsset[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('bot_assets')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('bot_assets table might not exist, using mock data');
+      return [
+        {
+          id: '1',
+          name: 'Alpha-V5.mq5',
+          description: 'Core trading bot file for MetaTrader 5',
+          url: '#',
+          fileSize: '1.2 MB',
+          version: '5.0.1',
+          type: 'mql5',
+          createdAt: new Date().toISOString()
+        }
+      ];
+    }
+
+    return data.map((asset: any) => ({
+      id: asset.id,
+      name: asset.name,
+      description: asset.description,
+      url: asset.url,
+      fileSize: asset.file_size,
+      version: asset.version,
+      type: asset.type,
+      createdAt: asset.created_at
+    }));
+  } catch (error) {
+    console.error('Error fetching bot assets:', error);
+    return [];
+  }
+};
+
+// Function to upload bot asset
+export const uploadBotAsset = async (file: File, metadata: Partial<BotAsset>) => {
+  try {
+    // 1. Upload to Storage
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `bot-files/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('bot-assets')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    // 2. Get Public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('bot-assets')
+      .getPublicUrl(filePath);
+
+    // 3. Save reference in DB
+    const { data, error: dbError } = await supabase
+      .from('bot_assets')
+      .insert([{
+        name: metadata.name || file.name,
+        description: metadata.description,
+        url: publicUrl,
+        file_size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+        version: metadata.version || '1.0.0',
+        type: metadata.type || 'mql5'
+      }])
+      .select()
+      .single();
+
+    if (dbError) throw dbError;
+    return data;
+  } catch (error) {
+    console.error('Error uploading bot asset:', error);
+    throw error;
+  }
+};
+
+// Function to delete bot asset
+export const deleteBotAsset = async (assetId: string, fileUrl: string) => {
+  try {
+    // 1. Delete from DB
+    const { error: dbError } = await supabase
+      .from('bot_assets')
+      .delete()
+      .eq('id', assetId);
+
+    if (dbError) throw dbError;
+
+    // 2. Delete from Storage (optional, but good practice)
+    const filePath = fileUrl.split('/').pop();
+    if (filePath) {
+      await supabase.storage
+        .from('bot-assets')
+        .remove([`bot-files/${filePath}`]);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting bot asset:', error);
     throw error;
   }
 };

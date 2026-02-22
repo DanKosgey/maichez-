@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
-import { StudentProfile } from '../../../types';
+import { fetchBotAssets, uploadBotAsset, deleteBotAsset } from '../../../services/adminService';
+import { BotAsset, StudentProfile } from '../../../types';
 import {
   Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Bot
 } from 'lucide-react';
@@ -14,6 +15,56 @@ const StudentManagementTab: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [assets, setAssets] = useState<BotAsset[]>([]);
+  const [assetLoading, setAssetLoading] = useState(false);
+
+  // Fetch bot assets on mount
+  React.useEffect(() => {
+    loadAssets();
+  }, []);
+
+  const loadAssets = async () => {
+    try {
+      setAssetLoading(true);
+      const data = await fetchBotAssets();
+      setAssets(data);
+    } finally {
+      setAssetLoading(false);
+    }
+  };
+
+  const handleUploadClick = async () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        setLoading(true);
+        await uploadBotAsset(file, { name: file.name, type: 'mql5' });
+        setSuccess('File uploaded successfully!');
+        loadAssets();
+      } catch (err) {
+        setError('Upload failed. Storage bucket may not be ready.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    input.click();
+  };
+
+  const handleDeleteAsset = async (id: string, url: string) => {
+    if (!window.confirm('Delete this asset?')) return;
+    try {
+      setAssetLoading(true);
+      await deleteBotAsset(id, url);
+      setSuccess('Asset deleted.');
+      loadAssets();
+    } finally {
+      setAssetLoading(false);
+    }
+  };
 
   // Enhance student data with trade information
   const enhancedStudents = useMemo(() => {
@@ -200,7 +251,7 @@ const StudentManagementTab: React.FC = () => {
         </div>
       )}
 
-      {/* Search and Filters */}
+      {/* Student List Section */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-xl">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="flex-1">
@@ -208,7 +259,7 @@ const StudentManagementTab: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
               <input
                 type="text"
-                placeholder="Search students by name, email, or tier..."
+                placeholder="Search students..."
                 className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-trade-neon focus:border-transparent"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -228,17 +279,14 @@ const StudentManagementTab: React.FC = () => {
           </select>
         </div>
 
-        {/* Students Table */}
         <div className="overflow-x-auto no-scrollbar pb-4">
           <table className="w-full">
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-700/50">
                 <th className="pb-4 font-medium">Student</th>
                 <th className="pb-4 font-medium">Tier</th>
+                <th className="pb-4 font-medium text-center">Bot Access</th>
                 <th className="pb-4 font-medium">Status</th>
-                <th className="pb-4 font-medium">Join Date</th>
-                <th className="pb-4 font-medium">Trades</th>
-                <th className="pb-4 font-medium">Win Rate</th>
                 <th className="pb-4 font-medium">Actions</th>
               </tr>
             </thead>
@@ -246,33 +294,19 @@ const StudentManagementTab: React.FC = () => {
               {filteredStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-900/50 transition-colors">
                   {editingStudentId === student.id ? (
-                    // Editing row
                     <>
                       <td className="py-4">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${getTierColor(student.tier).includes('purple') ? 'bg-purple-600/30' : 'bg-gray-700/50'}`}>
-                            {editedStudent?.name?.charAt(0) || student.name?.charAt(0) || '?'}
-                          </div>
-                          <div className="flex flex-col">
-                            <input
-                              type="text"
-                              value={editedStudent?.name || ''}
-                              onChange={(e) => setEditedStudent({ ...editedStudent, name: e.target.value })}
-                              className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white mb-1"
-                            />
-                            <input
-                              type="email"
-                              value={editedStudent?.email || ''}
-                              onChange={(e) => setEditedStudent({ ...editedStudent, email: e.target.value })}
-                              className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-xs"
-                            />
-                          </div>
-                        </div>
+                        <input
+                          type="text"
+                          value={editedStudent?.name || ''}
+                          onChange={(e) => setEditedStudent({ ...editedStudent, name: e.target.value })}
+                          className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white"
+                        />
                       </td>
                       <td className="py-4">
                         <select
                           value={editedStudent?.tier || student.tier}
-                          onChange={(e) => setEditedStudent({ ...editedStudent, tier: e.target.value })}
+                          onChange={(e) => setEditedStudent({ ...editedStudent, tier: e.target.value as any })}
                           className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white"
                         >
                           <option value="free">Free</option>
@@ -281,92 +315,51 @@ const StudentManagementTab: React.FC = () => {
                           <option value="elite">Elite</option>
                         </select>
                       </td>
-                      <td className="py-4">
+                      <td className="py-4 text-center">
                         <button
                           onClick={() => setEditedStudent({ ...editedStudent, botAccess: !editedStudent?.botAccess })}
-                          className={`flex items-center gap-2 px-3 py-1 rounded-lg border transition ${editedStudent?.botAccess
-                            ? 'bg-trade-neon/20 border-trade-neon/50 text-trade-neon'
-                            : 'bg-gray-800 border-gray-700 text-gray-500'
-                            }`}
+                          className={`p-2 rounded-lg border transition ${editedStudent?.botAccess ? 'bg-trade-neon/20 border-trade-neon/50 text-trade-neon' : 'bg-gray-800 border-gray-700 text-gray-500'}`}
                         >
                           <Bot className="h-4 w-4" />
-                          <span className="text-xs font-bold">{editedStudent?.botAccess ? 'BOT ON' : 'BOT OFF'}</span>
                         </button>
                       </td>
                       <td className="py-4">
-                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getStatusColor(student.status).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
+                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getStatusColor(student.status)}`}>
                           {student.status}
                         </span>
                       </td>
-                      <td className="py-4 text-gray-400">{new Date(student.joinDate).toLocaleDateString()}</td>
-                      <td className="py-4 text-white">{student.trades}</td>
-                      <td className="py-4 text-white">{student.winRate}</td>
                       <td className="py-4">
                         <div className="flex gap-2">
-                          <button
-                            onClick={handleSaveEdit}
-                            disabled={loading}
-                            className="p-2 bg-green-600 hover:bg-green-500 text-white rounded-lg disabled:opacity-50"
-                          >
-                            <Save className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            disabled={loading}
-                            className="p-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg disabled:opacity-50"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+                          <button onClick={handleSaveEdit} className="p-2 bg-green-600 rounded-lg"><Save className="h-4 w-4" /></button>
+                          <button onClick={handleCancelEdit} className="p-2 bg-gray-600 rounded-lg"><X className="h-4 w-4" /></button>
                         </div>
                       </td>
                     </>
                   ) : (
-                    // Normal row
                     <>
                       <td className="py-4">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${getTierColor(student.tier).includes('purple') ? 'bg-purple-600/30' : 'bg-gray-700/50'}`}>
-                            {student.name?.charAt(0) || '?'}
-                          </div>
-                          <div>
-                            <div className="font-bold text-white flex items-center gap-2">
-                              {student.name || 'Unknown'}
-                              {student.botAccess && (
-                                <Bot className="h-3 w-3 text-trade-neon" title="Bot Access Enabled" />
-                              )}
-                            </div>
-                            <div className="text-xs text-gray-400">{student.email}</div>
-                          </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-white">{student.name}</span>
+                          <span className="text-xs text-gray-500">{student.email}</span>
                         </div>
                       </td>
                       <td className="py-4">
-                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getTierColor(student.tier).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
+                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getTierColor(student.tier)}`}>
                           {student.tier}
                         </span>
                       </td>
+                      <td className="py-4 text-center">
+                        {student.botAccess ? <Bot className="h-4 w-4 text-trade-neon mx-auto" /> : <Bot className="h-4 w-4 text-gray-700 mx-auto" />}
+                      </td>
                       <td className="py-4">
-                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getStatusColor(student.status).replace('text-', 'text-').replace('bg-', 'bg-')}`}>
+                        <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getStatusColor(student.status)}`}>
                           {student.status}
                         </span>
                       </td>
-                      <td className="py-4 text-gray-400">{new Date(student.joinDate).toLocaleDateString()}</td>
-                      <td className="py-4 text-white">{student.trades}</td>
-                      <td className="py-4 text-white">{student.winRate}</td>
                       <td className="py-4">
                         <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditClick(student)}
-                            className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteStudent(student.id, student.name)}
-                            disabled={loading}
-                            className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg disabled:opacity-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          <button onClick={() => handleEditClick(student)} className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"><Edit2 className="h-4 w-4" /></button>
+                          <button onClick={() => handleDeleteStudent(student.id, student.name)} className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg"><Trash2 className="h-4 w-4" /></button>
                         </div>
                       </td>
                     </>
@@ -376,13 +369,71 @@ const StudentManagementTab: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {filteredStudents.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="h-16 w-16 mx-auto text-gray-500 mb-4" />
-            <p className="text-gray-500">No students found matching your search.</p>
+      {/* Bot Assets Management Section */}
+      <div className="mt-12 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+            <Bot className="h-6 w-6 text-trade-neon" />
+            Zeta Expert Management
+          </h2>
+          <p className="text-gray-400">Upload and distribute Zeta Expert bot files to authorized students</p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Upload Card */}
+          <div
+            onClick={handleUploadClick}
+            className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-dashed border-gray-600 p-8 flex flex-col items-center justify-center text-center group hover:border-trade-neon/50 transition-colors cursor-pointer"
+          >
+            <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Bot className="h-8 w-8 text-trade-neon" />
+            </div>
+            <h3 className="font-bold text-white mb-2">Upload New Asset</h3>
+            <p className="text-sm text-gray-500 mb-6">MQL5 files, manuals, or presets</p>
+            <button className="px-6 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white font-bold hover:bg-gray-800 hover:border-trade-neon transition-all">
+              Select File
+            </button>
           </div>
-        )}
+
+          {/* Asset List */}
+          <div className="md:col-span-2 space-y-4">
+            {assetLoading ? (
+              <div className="animate-pulse space-y-4">
+                {[1, 2].map(i => <div key={i} className="h-20 bg-gray-800/30 rounded-xl" />)}
+              </div>
+            ) : assets.length === 0 ? (
+              <div className="text-center py-10 bg-gray-800/20 rounded-xl border border-gray-700/30">
+                <p className="text-gray-500 text-sm">No bot assets uploaded yet.</p>
+              </div>
+            ) : (
+              assets.map((asset) => (
+                <div key={asset.id} className="bg-gray-800/30 rounded-xl p-4 border border-gray-700/50 flex items-center justify-between group hover:border-gray-600 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-trade-neon/10 rounded-lg group-hover:bg-trade-neon/20 transition-colors">
+                      <Bot className="h-6 w-6 text-trade-neon" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">{asset.name}</h4>
+                      <p className="text-xs text-gray-500">
+                        {asset.version} • {asset.fileSize} • {new Date(asset.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleDeleteAsset(asset.id, asset.url)}
+                      className="p-2 hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-colors rounded-lg"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

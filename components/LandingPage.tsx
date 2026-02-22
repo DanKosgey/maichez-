@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useAnimation, AnimatePresence, Variants, useInView } from 'framer-motion';
-import { ArrowRight, Zap, Shield, TrendingUp, Play, Check, X, Star, Lock, AlertTriangle, CheckCircle, BarChart2, Rocket, Sparkles, Target, Users, Award, Clock } from 'lucide-react';
+import { ArrowRight, Zap, Shield, TrendingUp, Play, Check, X, Star, Lock, AlertTriangle, CheckCircle, BarChart2, Rocket, Sparkles, Target, Users, Award, Clock, Bot } from 'lucide-react';
 import { socialMediaService } from '../services/socialMediaService';
 import { SubscriptionPlan } from '../types';
 import { APP_DISPLAY_NAMES, APP_MESSAGES } from '../lib/constants';
@@ -908,6 +908,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onSelectTier, onPlanSelection
                             <span className={isPopular || (isElite && idx === 0) ? 'font-bold' : ''}>{feature}</span>
                           </li>
                         ))}
+                        {isElite && (
+                          <li className="flex gap-2 sm:gap-3 text-violet-600 font-bold">
+                            <Bot className="h-4 w-4 sm:h-5 sm:w-5 mt-0.5 flex-shrink-0" />
+                            <span>Alpha-V5 MQL5 Bot Included</span>
+                          </li>
+                        )}
                       </ul>
 
                       <motion.button

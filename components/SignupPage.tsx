@@ -51,7 +51,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
       });
 
       if (signupError) throw signupError;
-      
+
       if (data.user) {
         setUserId(data.user.id);
         setShowVerification(true);
@@ -81,7 +81,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
       });
 
       if (verifyError) throw verifyError;
-      
+
       if (data.user) {
         setSuccessMessage('Email verified successfully! Redirecting to your dashboard...');
         // Call the success callback after a short delay
@@ -99,7 +99,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
 
   const handleResendCode = async () => {
     if (resendCooldown > 0) return;
-    
+
     setIsLoading(true);
     setError('');
     setSuccessMessage('');
@@ -115,7 +115,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
       });
 
       if (resendError) throw resendError;
-      
+
       setSuccessMessage('Verification code resent! Please check your email.');
       setResendCooldown(30); // Reset cooldown
     } catch (err: any) {
@@ -193,7 +193,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
           </form>
 
           <div className="mt-6 text-center">
-            <button 
+            <button
               onClick={handleResendCode}
               disabled={isLoading || resendCooldown > 0}
               className="text-sm text-gray-400 hover:text-white transition flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
@@ -204,8 +204,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
           </div>
 
           <div className="mt-8 pt-6 border-t border-gray-800">
-            <button 
-              onClick={onBack} 
+            <button
+              onClick={onBack}
               className="w-full text-gray-500 text-sm hover:text-white transition"
               disabled={isLoading}
             >
@@ -290,24 +290,22 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Subscription Tier</label>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { value: 'free', label: 'Free', price: '$0' },
-                { value: 'foundation', label: 'Foundation', price: '$47' },
-                { value: 'professional', label: 'Professional', price: '$97' },
-                { value: 'elite', label: 'Elite', price: '$297' }
+                { value: 'free', label: 'Free' },
+                { value: 'foundation', label: 'Foundation' },
+                { value: 'professional', label: 'Professional' },
+                { value: 'elite', label: 'Elite' }
               ].map((tier) => (
                 <button
                   key={tier.value}
                   type="button"
                   onClick={() => setSubscriptionTier(tier.value)}
-                  className={`py-3 rounded-lg font-bold transition-all ${
-                    subscriptionTier === tier.value
+                  className={`py-4 rounded-xl font-bold transition-all ${subscriptionTier === tier.value
                       ? 'bg-trade-neon text-black shadow-lg shadow-trade-neon/30'
                       : 'bg-gray-800 text-white border border-gray-700 hover:border-trade-neon'
-                  }`}
+                    }`}
                   disabled={isLoading}
                 >
                   <div className="text-sm">{tier.label}</div>
-                  <div className="text-xs opacity-80">{tier.price}</div>
                 </button>
               ))}
             </div>
@@ -343,8 +341,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onBack, onSignupSuccess }) => {
         </form>
 
         <div className="mt-8 pt-6 border-t border-gray-800">
-          <button 
-            onClick={onBack} 
+          <button
+            onClick={onBack}
             className="w-full text-gray-500 text-sm hover:text-white transition"
             disabled={isLoading}
           >

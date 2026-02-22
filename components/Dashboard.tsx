@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { User, CourseModule, TradeEntry } from '../types';
-import { PlayCircle, Award, TrendingUp, Clock, CalendarPlus, CheckCircle, AlertTriangle, Activity, DollarSign, TrendingDown, Percent, BookOpen } from 'lucide-react';
+import { PlayCircle, Award, TrendingUp, Clock, CalendarPlus, CheckCircle, AlertTriangle, Activity, DollarSign, TrendingDown, Percent, BookOpen, Bot } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   AreaChart, Area, CartesianGrid
@@ -351,13 +351,38 @@ const Dashboard: React.FC<DashboardProps> = ({ user, courses, onContinueCourse }
               <p className="text-xs text-gray-500 mt-1">Target: &gt; 2.0</p>
             </div>
 
+            {/* Bot Marketplace Card */}
+            <div
+              className={`p-4 md:p-6 rounded-xl border relative overflow-hidden cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition flex flex-col justify-center ${user.botAccess
+                ? 'bg-slate-800 border-emerald-500/50 shadow-emerald-900/10'
+                : 'bg-slate-800 border-gray-700 shadow-xl'
+                }`}
+              onClick={() => window.dispatchEvent(new CustomEvent('navigateToView', { detail: 'bot' }))}
+            >
+              <div className="absolute top-0 right-0 p-3 opacity-10">
+                <Bot className="h-12 w-12 text-brand-primary" />
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`p-1.5 md:p-2 rounded ${user.botAccess ? 'bg-emerald-500/20 text-emerald-400' : 'bg-brand-primary/20 text-brand-primary'}`}>
+                  <Bot className="h-4 w-4 md:h-5 md:w-5" />
+                </div>
+                <span className="text-gray-400 text-xs md:text-sm">MQL5 Bot</span>
+              </div>
+              <div className="text-lg md:text-xl font-black mb-1">
+                {user.botAccess ? 'Alpha-V5 Ready' : 'Bot Store'}
+              </div>
+              <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">
+                {user.botAccess ? 'Active License' : 'Upgrade Required'}
+              </p>
+            </div>
+
             {/* Journal Trade Button */}
             <div
-              className="bg-gradient-to-br from-trade-accent to-blue-700 p-4 md:p-6 rounded-xl border border-blue-500 shadow-lg shadow-blue-900/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition flex flex-col justify-center col-span-2 lg:col-span-1"
+              className="bg-gradient-to-br from-trade-accent to-blue-700 p-4 md:p-6 rounded-xl border border-blue-500 shadow-lg shadow-blue-900/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition flex flex-col justify-center"
               onClick={() => window.dispatchEvent(new CustomEvent('navigateToView', { detail: 'journal' }))}
             >
               <h3 className="font-bold text-base md:text-lg mb-1 text-white">Trade Journal</h3>
-              <p className="text-blue-100 text-xs md:text-sm mb-3 opacity-80">Log &amp; track your trades</p>
+              <p className="text-blue-100 text-xs md:text-sm mb-3 opacity-80">Log & track your trades</p>
               <div className="flex items-center text-white font-bold text-xs md:text-sm bg-white/20 w-fit px-3 py-1.5 rounded-lg hover:bg-white/30 transition">
                 Log Trade <BookOpen className="ml-2 h-3.5 w-3.5" />
               </div>
@@ -458,8 +483,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, courses, onContinueCourse }
 
           {/* Market Status */}
           <div className={`p-5 md:p-6 rounded-xl border flex flex-col items-center justify-center text-center transition-colors duration-500 ${marketStatus.isOpen
-              ? 'bg-gradient-to-br from-green-900/40 to-black border-green-800'
-              : 'bg-gradient-to-br from-gray-900 to-black border-gray-800'
+            ? 'bg-gradient-to-br from-green-900/40 to-black border-green-800'
+            : 'bg-gradient-to-br from-gray-900 to-black border-gray-800'
             }`}>
             <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${marketStatus.isOpen ? 'bg-green-500/20 text-green-500 animate-pulse' : 'bg-trade-neon/10 text-trade-neon'
               }`}>

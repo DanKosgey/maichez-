@@ -17,6 +17,7 @@ import RulesTab from './tabs/RulesTab';
 import JournalTab from './tabs/JournalTab';
 import AdminAnalyticsTab from './tabs/AdminAnalyticsTab';
 import SettingsTab from './tabs/SettingsTab';
+import BotInquiriesTab from './tabs/BotInquiriesTab';
 
 interface AdminPortalProps {
   courses: CourseModule[];
@@ -48,7 +49,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
   const isValidTab = (tab: string): tab is typeof activeTab => {
     return [
       'overview', 'directory', 'trades', 'analytics',
-      'content', 'rules', 'journal', 'admin-analytics', 'settings', 'student-management'
+      'content', 'rules', 'journal', 'admin-analytics', 'settings', 'student-management', 'bot-inquiries'
     ].includes(tab);
   };
 
@@ -75,6 +76,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
         return <AdminAnalyticsTab />;
       case 'settings':
         return <SettingsTab />;
+      case 'bot-inquiries':
+        return <BotInquiriesTab />;
       default:
         return <OverviewTab />;
     }
@@ -91,6 +94,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
     { id: 'journal', label: 'My Trades', icon: DollarSign },
     { id: 'admin-analytics', label: 'Admin Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: CreditCard },
+    { id: 'bot-inquiries', label: 'Bot Inquiries', icon: Bot },
   ];
 
   return (

@@ -19,13 +19,14 @@ import { courseService } from './services/courseService';
 import UnderReviewPage from './components/UnderReviewPage';
 import SignupPage from './components/SignupPage';
 import BotDownloadPage from './components/BotDownloadPage';
+import BotStore from './components/BotStore';
 
 // --- MOCK DATA ---
 
 // Mock Classroom Data for Admin Portal
 const MOCK_STUDENTS: StudentProfile[] = [
   {
-    id: 's1', name: 'Dan Student', email: 'dan@student.com', tier: 'professional', botAccess: true, joinedDate: '2025-09-10',
+    id: 's1', name: 'Dan Student', email: 'dan@student.com', tier: 'professional', botAccess: true, botPurchaseStatus: 'completed', joinedDate: '2025-09-10',
     status: 'active',
     stats: { winRate: 65, totalPnL: 1250, tradesCount: 42, avgRiskReward: 2.1, currentDrawdown: 3.2 },
     recentTrades: [
@@ -34,7 +35,7 @@ const MOCK_STUDENTS: StudentProfile[] = [
     ]
   },
   {
-    id: 's2', name: 'Sarah Jenkins', email: 'sarah.j@gmail.com', tier: 'elite', botAccess: false, joinedDate: '2025-08-15',
+    id: 's2', name: 'Sarah Jenkins', email: 'sarah.j@gmail.com', tier: 'elite', botAccess: false, botPurchaseStatus: 'none', joinedDate: '2025-08-15',
     status: 'active',
     stats: { winRate: 72, totalPnL: 5800, tradesCount: 89, avgRiskReward: 3.5, currentDrawdown: 1.5 },
     recentTrades: [
@@ -42,7 +43,7 @@ const MOCK_STUDENTS: StudentProfile[] = [
     ]
   },
   {
-    id: 's3', name: 'Mike Ross', email: 'mike.r@law.com', tier: 'professional', botAccess: true, joinedDate: '2025-10-01',
+    id: 's3', name: 'Mike Ross', email: 'mike.r@law.com', tier: 'professional', botAccess: true, botPurchaseStatus: 'completed', joinedDate: '2025-10-01',
     status: 'at-risk',
     stats: { winRate: 35, totalPnL: -2100, tradesCount: 15, avgRiskReward: 1.1, currentDrawdown: 18.5 },
     recentTrades: [
@@ -51,13 +52,13 @@ const MOCK_STUDENTS: StudentProfile[] = [
     ]
   },
   {
-    id: 's4', name: 'Jessica Pearson', email: 'jessica@firm.com', tier: 'elite', botAccess: true, joinedDate: '2025-07-20',
+    id: 's4', name: 'Jessica Pearson', email: 'jessica@firm.com', tier: 'elite', botAccess: true, botPurchaseStatus: 'completed', joinedDate: '2025-07-20',
     status: 'active',
     stats: { winRate: 55, totalPnL: 890, tradesCount: 22, avgRiskReward: 2.8, currentDrawdown: 4.0 },
     recentTrades: []
   },
   {
-    id: 's5', name: 'Harvey Specter', email: 'harvey@closer.com', tier: 'foundation', botAccess: false, joinedDate: '2025-10-05',
+    id: 's5', name: 'Harvey Specter', email: 'harvey@closer.com', tier: 'foundation', botAccess: false, botPurchaseStatus: 'pending', joinedDate: '2025-10-05',
     status: 'inactive',
     stats: { winRate: 0, totalPnL: 0, tradesCount: 0, avgRiskReward: 0, currentDrawdown: 0 },
     recentTrades: []
@@ -99,7 +100,8 @@ const MOCK_USER_ELITE_PENDING: User = {
   role: 'student',
   subscriptionTier: 'elite-pending',
   progress: 0,
-  botAccess: false
+  botAccess: false,
+  botPurchaseStatus: 'none'
 };
 
 // --- APP COMPONENT ---
@@ -223,7 +225,8 @@ const App: React.FC = () => {
           role: data.role as any,
           subscriptionTier: data.subscription_tier as any,
           progress: 0,
-          botAccess: data.bot_access || false
+          botAccess: data.bot_access || false,
+          botPurchaseStatus: data.bot_purchase_status || 'none'
         });
 
         // Set default view based on Role and Subscription Tier
@@ -264,7 +267,8 @@ const App: React.FC = () => {
           role: newProfile.role as any,
           subscriptionTier: newProfile.subscription_tier as any,
           progress: 0,
-          botAccess: newProfile.bot_access || false
+          botAccess: newProfile.bot_access || false,
+          botPurchaseStatus: newProfile.bot_purchase_status || 'none'
         });
 
         // Set default view for new users
@@ -280,7 +284,8 @@ const App: React.FC = () => {
         role: 'student',
         subscriptionTier: 'free',
         progress: 0,
-        botAccess: false
+        botAccess: false,
+        botPurchaseStatus: 'none'
       });
       setPortalView('community');
     }
@@ -533,7 +538,8 @@ const App: React.FC = () => {
               },
               recentTrades: [],
               status: 'active',
-              botAccess: true
+              botAccess: true,
+              botPurchaseStatus: 'completed'
             };
 
             return (
@@ -718,29 +724,11 @@ const App: React.FC = () => {
             />
           );
         case 'bot':
-          // Verify access
-          if (!user.botAccess) {
-            return (
-              <div className="flex flex-col items-center justify-center h-[60vh] text-center max-w-lg mx-auto animate-in fade-in zoom-in duration-300">
-                <div className="bg-gray-800 p-6 rounded-full mb-6 relative">
-                  <Lock className="h-12 w-12 mb-4 text-gray-500" />
-                  <div className="absolute -top-1 -right-1 bg-trade-neon/20 text-trade-neon text-xs font-bold px-2 py-1 rounded-full border border-trade-neon/50">ELITE</div>
-                </div>
-                <h2 className="text-3xl font-bold text-white mb-4">Access Restricted</h2>
-                <p className="text-gray-400 mb-8 opacity-80">
-                  The Maichez MQL5 bot is a premium tool reserved for authorized members.
-                  Please contact support or check your subscription tier.
-                </p>
-                <button
-                  onClick={() => setPortalView('community')}
-                  className="mt-4 px-8 py-3 bg-trade-neon text-black font-bold rounded-xl hover:bg-green-400 transition"
-                >
-                  Back to Community
-                </button>
-              </div>
-            );
-          }
-          return <BotDownloadPage />;
+          return user.botAccess ? (
+            <BotDownloadPage user={user} />
+          ) : (
+            <BotStore user={user} onUpdateUser={setUser} />
+          );
         case 'todos':
           // Access Control: Only foundation, professional, and elite tiers can access todos
           // Pending users cannot access
@@ -860,7 +848,8 @@ const App: React.FC = () => {
             },
             recentTrades: [],
             status: 'active',
-            botAccess: user.botAccess
+            botAccess: user.botAccess,
+            botPurchaseStatus: user.botPurchaseStatus
           };
 
           return (
