@@ -500,7 +500,7 @@ const App: React.FC = () => {
         switch (portalView) {
           case 'overview':
           case 'admin-dashboard':
-          case 'dashboard': // Some routes might use dashboard for admin
+          case 'dashboard':
           case 'directory':
           case 'student-management':
           case 'trades':
@@ -511,13 +511,11 @@ const App: React.FC = () => {
           case 'bot-inquiries':
           case 'bot':
             return (
-              <AdminPortalProvider>
-                <AdminPortal
-                  courses={courses}
-                  user={user}
-                  initialTab={portalView === 'admin-dashboard' || portalView === 'dashboard' ? 'overview' : portalView}
-                />
-              </AdminPortalProvider>
+              <AdminPortal
+                courses={courses}
+                user={user}
+                initialTab={portalView === 'admin-dashboard' || portalView === 'dashboard' ? 'overview' : portalView}
+              />
             );
           case 'rules':
             return (
@@ -529,7 +527,7 @@ const App: React.FC = () => {
                 />
               </div>
             );
-          case 'content':
+          case 'content': {
             // Map User to StudentProfile for CourseManagementSystem
             const adminProfile: StudentProfile = {
               id: user.id,
@@ -556,15 +554,14 @@ const App: React.FC = () => {
                 isAdmin={true}
               />
             );
-          default:
+          }
+          default: {
             // Check if it's an admin tab that should use AdminPortal
             const isAdminTab = ['overview', 'admin-dashboard', 'dashboard', 'directory', 'student-management', 'trades', 'analytics', 'content', 'rules', 'journal', 'admin-analytics', 'settings', 'bot-inquiries', 'bot'].includes(portalView);
 
             if (isAdminTab) {
               return (
-                <AdminPortalProvider>
-                  <AdminPortal courses={courses} user={user} initialTab={portalView} />
-                </AdminPortalProvider>
+                <AdminPortal courses={courses} user={user} initialTab={portalView} />
               );
             }
 
@@ -575,6 +572,7 @@ const App: React.FC = () => {
                 <p>The {portalView} is being built by the engineering team.</p>
               </div>
             );
+          }
         }
       }
 
@@ -732,7 +730,8 @@ const App: React.FC = () => {
             />
           );
         case 'bot':
-          return user.botAccess ? (
+          const hasBotAccess = user.botAccess || user.botPurchaseStatus === 'completed';
+          return hasBotAccess ? (
             <BotDownloadPage user={user} />
           ) : (
             <BotStore user={user} onUpdateUser={setUser} />
@@ -1026,6 +1025,18 @@ const App: React.FC = () => {
       }
     };
 
+    const content = (
+      <main className="flex-1 p-8">
+        {loadingCourses ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-trade-neon"></div>
+          </div>
+        ) : (
+          renderContent()
+        )}
+      </main>
+    );
+
     return (
       <Layout
         user={user}
@@ -1033,15 +1044,13 @@ const App: React.FC = () => {
         onChangeView={setPortalView}
         onLogout={handleLogout}
       >
-        <main className="flex-1 p-8">
-          {loadingCourses ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-trade-neon"></div>
-            </div>
-          ) : (
-            renderContent()
-          )}
-        </main>
+        {user.role === 'admin' ? (
+          <AdminPortalProvider>
+            {content}
+          </AdminPortalProvider>
+        ) : (
+          content
+        )}
       </Layout>
     );
   }

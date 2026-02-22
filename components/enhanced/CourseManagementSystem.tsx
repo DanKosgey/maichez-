@@ -14,8 +14,8 @@ import CourseVersioning from './CourseVersioning';
 import NotificationSystem from './NotificationSystem';
 import CategoryManager from './CategoryManager';
 import { supabase } from '../../supabase/client';
-import { 
-  BookOpen, Users, BarChart3, Settings, 
+import {
+  BookOpen, Users, BarChart3, Settings,
   Download, Bell, User, TrendingUp
 } from 'lucide-react';
 
@@ -112,10 +112,10 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
             relatedEntityId: payload.new.related_entity_id,
             relatedEntityType: payload.new.related_entity_type
           };
-          setNotifications(prev => prev.map(notification => 
+          setNotifications(prev => prev.map(notification =>
             notification.id === updatedNotification.id ? updatedNotification : notification
           ));
-          
+
           // Update unread count if notification was marked as read
           if (payload.old.read === false && payload.new.read === true) {
             setUnreadCount(prev => Math.max(0, prev - 1));
@@ -133,7 +133,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
         (payload) => {
           // Remove deleted notification
           setNotifications(prev => prev.filter(notification => notification.id !== payload.old.id));
-          
+
           // Update unread count if deleted notification was unread
           if (payload.old.read === false) {
             setUnreadCount(prev => Math.max(0, prev - 1));
@@ -151,12 +151,12 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
   const loadData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Load all modules first
       const modulesData = await courseService.getModules();
       setModules(modulesData);
-      
+
       // Load all courses and populate them with their modules
       const coursesData = await courseService.getCourses();
       const coursesWithModules = coursesData.map(course => ({
@@ -165,20 +165,20 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
           .sort((a, b) => (a.order || 0) - (b.order || 0))
       }));
       setCourses(coursesWithModules);
-      
+
       // Update modules state to ensure it's in sync
       setModules(modulesData);
-      
+
       // Load categories
       const categoriesData = await courseService.getCategories();
       setCategories(categoriesData);
-      
+
       // Load enrollments (for admin) or user enrollments
-      const enrollmentsData = isAdmin 
+      const enrollmentsData = isAdmin
         ? await courseService.getAllEnrollments()
         : await courseService.getEnrollments(currentUser.id);
       setEnrollments(enrollmentsData);
-      
+
       // Load progress (for admin) or user progress
       const progressData = isAdmin
         ? await courseService.getAllProgress()
@@ -197,11 +197,11 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     // Skip loading notifications for admin users
     const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id) && currentUser.id !== '00000000-0000-0000-0000-000000000000';
     if (!isValidUuid || !currentUser.id) return; // Added check for currentUser.id
-    
+
     try {
       const notificationsData = await notificationService.getAllNotifications(currentUser.id); // Changed from getNotifications to getAllNotifications
       setNotifications(notificationsData);
-      
+
       const unread = await notificationService.getUnreadNotifications(currentUser.id); // Changed to get unread count properly
       setUnreadCount(unread.length);
     } catch (err) {
@@ -214,7 +214,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     // Skip loading notification preferences for admin users
     const isValidUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id) && currentUser.id !== '00000000-0000-0000-0000-000000000000';
     if (!isValidUuid || !currentUser.id) return; // Added check for currentUser.id
-    
+
     try {
       const preferences = await notificationService.getPreferences(currentUser.id);
       setNotificationPreferences(preferences);
@@ -253,7 +253,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     try {
       const success = await courseService.updateCourse(id, updates);
       if (success) {
-        setCourses(courses.map(course => 
+        setCourses(courses.map(course =>
           course.id === id ? { ...course, ...updates } : course
         ));
         // Notify enrolled users of the update
@@ -302,7 +302,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
           }
           return course;
         }));
-        
+
         // Also update the modules state to ensure consistency
         setModules([...modules, newModule]);
         // Notify users if this is a new module in an existing course
@@ -341,7 +341,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     try {
       const success = await courseService.updateCategory(id, updates);
       if (success) {
-        setCategories(categories.map(category => 
+        setCategories(categories.map(category =>
           category.id === id ? { ...category, ...updates } : category
         ));
       }
@@ -369,10 +369,10 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
       if (success) {
         const updatedModule = modules.find(m => m.id === id);
         if (updatedModule) {
-          setModules(modules.map(module => 
+          setModules(modules.map(module =>
             module.id === id ? { ...module, ...updates } : module
           ));
-          
+
           // Update the corresponding course with the updated module
           // Handle case where module might be moved to a different course
           setCourses(courses.map(course => {
@@ -396,7 +396,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
             if (course.id === updatedModule.courseId && (!updates.courseId || updates.courseId === updatedModule.courseId)) {
               return {
                 ...course,
-                modules: course.modules.map(m => 
+                modules: course.modules.map(m =>
                   m.id === id ? { ...m, ...updates } : m
                 ).sort((a, b) => (a.order || 0) - (b.order || 0))
               };
@@ -404,7 +404,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
             return course;
           }));
         }
-        
+
         // Notify enrolled users of the update
         const module = modules.find(m => m.id === id);
         if (module?.courseId) {
@@ -431,7 +431,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
       if (success) {
         const deletedModule = modules.find(m => m.id === id);
         setModules(modules.filter(module => module.id !== id));
-        
+
         // Remove the module from its course
         if (deletedModule) {
           setCourses(courses.map(course => {
@@ -443,7 +443,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
             }
             return course;
           }));
-          
+
           // Also update the modules state to ensure consistency
           setModules(modules.filter(module => module.id !== id));
         }
@@ -474,7 +474,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     try {
       const success = await courseService.updateEnrollment(id, updates);
       if (success) {
-        setEnrollments(enrollments.map(enrollment => 
+        setEnrollments(enrollments.map(enrollment =>
           enrollment.id === id ? { ...enrollment, ...updates } : enrollment
         ));
       }
@@ -488,55 +488,55 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
   const handleCompleteModule = async (moduleId: string) => {
     try {
       const success = await courseService.updateModuleProgress(
-        currentUser.id, 
-        moduleId, 
+        currentUser.id,
+        moduleId,
         { completed: true, completedAt: new Date() }
       );
-      
+
       if (success) {
         // Update the progress state to include the newly completed module
-        const updatedProgress = progress.map(p => 
-          p.moduleId === moduleId 
-            ? { ...p, completed: true, completedAt: new Date() } 
+        const updatedProgress = progress.map(p =>
+          p.moduleId === moduleId
+            ? { ...p, completed: true, completedAt: new Date() }
             : p
         );
-        
+
         // If the module wasn't in the progress array before, add it
         if (!progress.some(p => p.moduleId === moduleId)) {
-          updatedProgress.push({ 
-            profileId: currentUser.id, 
-            moduleId, 
-            completed: true, 
-            completedAt: new Date() 
+          updatedProgress.push({
+            profileId: currentUser.id,
+            moduleId,
+            completed: true,
+            completedAt: new Date()
           });
         }
-        
+
         setProgress(updatedProgress);
-        
+
         // Update enrollment progress
         const module = modules.find(m => m.id === moduleId);
         if (module?.courseId) {
           // Recalculate course progress and update enrollment using the updated progress
           const courseModules = modules.filter(m => m.courseId === module.courseId);
-          const completedModules = courseModules.filter(m => 
+          const completedModules = courseModules.filter(m =>
             updatedProgress.some(p => p.moduleId === m.id && p.completed)
           ).length;
-          
+
           const courseProgress = Math.round((completedModules / courseModules.length) * 100);
-          
+
           // Find enrollment for this course and update progress
-          const enrollment = enrollments.find(e => 
+          const enrollment = enrollments.find(e =>
             e.profileId === currentUser.id && e.courseId === module.courseId
           );
-          
+
           if (enrollment) {
             // Always update progress
             await handleUpdateEnrollment(enrollment.id, { progress: courseProgress });
-            
+
             // Check if all modules are completed and update enrollment status if needed
             if (completedModules === courseModules.length && enrollment.status !== 'completed') {
-              await handleUpdateEnrollment(enrollment.id, { 
-                progress: 100, 
+              await handleUpdateEnrollment(enrollment.id, {
+                progress: 100,
                 status: 'completed'
               });
             }
@@ -554,7 +554,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     try {
       const success = await notificationService.markAsRead(id);
       if (success) {
-        setNotifications(notifications.map(notification => 
+        setNotifications(notifications.map(notification =>
           notification.id === id ? { ...notification, read: true } : notification
         ));
         setUnreadCount(unreadCount - 1);
@@ -568,7 +568,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     try {
       const success = await notificationService.markAllAsRead(currentUser.id);
       if (success) {
-        setNotifications(notifications.map(notification => 
+        setNotifications(notifications.map(notification =>
           ({ ...notification, read: true })
         ));
         setUnreadCount(0);
@@ -582,7 +582,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
     try {
       const success = await notificationService.deleteNotification(id);
       if (success) {
-        setNotifications(notifications.filter(notification => 
+        setNotifications(notifications.filter(notification =>
           notification.id !== id
         ));
       }
@@ -594,7 +594,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
   const handleUpdateNotificationPreferences = async (preferences: Partial<any>) => {
     try {
       const success = await notificationService.updatePreferences(
-        currentUser.id, 
+        currentUser.id,
         preferences
       );
       if (success && notificationPreferences) {
@@ -609,25 +609,25 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
   };
 
   // Export/Import functions
-  const handleImportCourses = async (data: { 
-    courses: Course[], 
-    modules: CourseModule[], 
-    categories: CourseCategory[] 
+  const handleImportCourses = async (data: {
+    courses: Course[],
+    modules: CourseModule[],
+    categories: CourseCategory[]
   }) => {
     try {
       // Import courses
       for (const course of data.courses) {
         await courseService.createCourse(course);
       }
-      
+
       // Import modules
       for (const module of data.modules) {
         await courseService.createModule(module);
       }
-      
+
       // Note: Category creation is not implemented in courseService
       // Categories are managed separately in the database
-      
+
       // Reload data
       loadData();
     } catch (err) {
@@ -676,7 +676,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
       <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4 m-4">
         <div className="text-red-400 font-bold">Error</div>
         <div className="text-red-300">{error}</div>
-        <button 
+        <button
           onClick={loadData}
           className="mt-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
         >
@@ -693,13 +693,15 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
         {/* Admin Header */}
         <div className="bg-black border-b border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
+            <div className="flex flex-col md:flex-row items-center justify-between py-4 md:h-16 gap-4">
               <div className="flex items-center gap-3">
-                <BookOpen className="h-8 w-8 text-trade-accent" />
-                <h1 className="text-xl font-bold text-white">Course Management System</h1>
+                <BookOpen className="h-6 w-6 md:h-8 md:w-8 text-trade-accent" />
+                <h1 className="text-lg md:text-xl font-bold text-white truncate max-w-[250px] sm:max-w-none">
+                  Course Management System
+                </h1>
               </div>
-              
-              <div className="flex items-center gap-4">
+
+              <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                 <NotificationSystem
                   notifications={notifications}
                   preferences={notificationPreferences}
@@ -709,67 +711,44 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
                   onDelete={handleDeleteNotification}
                   onUpdatePreferences={handleUpdateNotificationPreferences}
                 />
-                
-                <div className="flex items-center gap-2 text-white">
-                  <User className="h-5 w-5" />
-                  <span>{currentUser.name}</span>
+
+                <div className="flex items-center gap-2 text-white bg-gray-900/50 px-3 py-1.5 rounded-lg border border-gray-800 text-sm">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <span className="font-medium truncate max-w-[100px]">{currentUser.name}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Admin Navigation */}
-        <div className="bg-gray-900 border-b border-gray-800">
+        <div className="bg-gray-900 border-b border-gray-800 sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab('courses')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                  activeTab === 'courses'
-                    ? 'border-trade-accent text-trade-accent'
-                    : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <BookOpen className="h-4 w-4" /> Courses
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('analytics')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                  activeTab === 'analytics'
-                    ? 'border-trade-accent text-trade-accent'
-                    : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <BarChart3 className="h-4 w-4" /> Analytics
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('enrollments')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                  activeTab === 'enrollments'
-                    ? 'border-trade-accent text-trade-accent'
-                    : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <Users className="h-4 w-4" /> Enrollments
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                  activeTab === 'settings'
-                    ? 'border-trade-accent text-trade-accent'
-                    : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-300'
-                }`}
-              >
-                <Settings className="h-4 w-4" /> Settings
-              </button>
+            <div className="flex space-x-6 overflow-x-auto no-scrollbar py-1">
+              {[
+                { id: 'courses', label: 'Courses', icon: BookOpen },
+                { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+                { id: 'enrollments', label: 'Enrollments', icon: Users },
+                { id: 'settings', label: 'Settings', icon: Settings }
+              ].map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`py-4 px-1 border-b-2 font-bold text-sm flex items-center gap-2 transition-all whitespace-nowrap flex-shrink-0 ${activeTab === tab.id
+                        ? 'border-trade-accent text-trade-accent'
+                        : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-500'
+                      }`}
+                  >
+                    <Icon className="h-4 w-4" /> {tab.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
-        
+
         {/* Admin Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {activeTab === 'courses' && (
@@ -785,7 +764,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
               onDeleteModule={handleDeleteModule}
             />
           )}
-          
+
           {activeTab === 'analytics' && (
             <AdminDashboardAnalytics
               courses={courses}
@@ -794,7 +773,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
               progress={progress}
             />
           )}
-          
+
           {activeTab === 'enrollments' && (
             <EnrollmentManager
               courses={courses}
@@ -804,7 +783,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
               onUpdateEnrollment={handleUpdateEnrollment}
             />
           )}
-          
+
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <CategoryManager
@@ -821,8 +800,8 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
               />
               <DifficultyLevelManager
                 levels={[]} // This would come from a levels service
-                onSaveLevel={() => {}}
-                onDeleteLevel={() => {}}
+                onSaveLevel={() => { }}
+                onDeleteLevel={() => { }}
               />
             </div>
           )}
@@ -842,7 +821,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
               <BookOpen className="h-8 w-8 text-trade-accent" />
               <h1 className="text-xl font-bold text-white">Learning Center</h1>
             </div>
-            
+
             <div className="flex items-center gap-4">
               {/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentUser.id) && currentUser.id !== '00000000-0000-0000-0000-000000000000' && (
                 <NotificationSystem
@@ -856,7 +835,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
                   onUpdatePreferences={handleUpdateNotificationPreferences}
                 />
               )}
-              
+
               <div className="flex items-center gap-2 text-white">
                 <User className="h-5 w-5" />
                 <span>{currentUser.name}</span>
@@ -865,36 +844,34 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* Student Navigation */}
       <div className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             <button
               onClick={() => setActiveTab('courses')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                activeTab === 'courses'
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'courses'
                   ? 'border-trade-accent text-trade-accent'
                   : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-300'
-              }`}
+                }`}
             >
               <BookOpen className="h-4 w-4" /> Courses
             </button>
-            
+
             <button
               onClick={() => setActiveTab('progress')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-                activeTab === 'progress'
+              className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'progress'
                   ? 'border-trade-accent text-trade-accent'
                   : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-300'
-              }`}
+                }`}
             >
               <TrendingUp className="h-4 w-4" /> Progress
             </button>
           </div>
         </div>
       </div>
-      
+
       {/* Student Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'courses' && (
@@ -911,7 +888,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
             onCompleteModule={handleCompleteModule}
           />
         )}
-        
+
         {activeTab === 'progress' && (
           <div className="space-y-6">
             <ProgressTracker
@@ -927,7 +904,7 @@ const CourseManagementSystem: React.FC<CourseManagementSystemProps> = ({
               modules={modules}
               enrollments={enrollments.filter(e => e.profileId === currentUser.id)}
               progress={progress.filter(p => p.profileId === currentUser.id)}
-              onExportReport={() => {}}
+              onExportReport={() => { }}
             />
           </div>
         )}

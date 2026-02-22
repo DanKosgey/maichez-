@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Course, CourseModule, QuizQuestion, CourseCategory } from '../../types';
-import { 
-  Plus, Edit2, Trash2, Video, FileText, Save, X, 
+import {
+  Plus, Edit2, Trash2, Video, FileText, Save, X,
   Layers, GraduationCap, Clock, CheckCircle, CheckSquare, List, HelpCircle,
   BookOpen, Link, Tag, User, Image as ImageIcon
 } from 'lucide-react';
@@ -33,7 +33,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editingType, setEditingType] = useState<'course' | 'module'>('course');
   const [editingId, setEditingId] = useState<string | null>(null);
-  
+
   // Form States
   const [courseFormData, setCourseFormData] = useState<Partial<Course>>({
     title: '',
@@ -44,7 +44,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
     categoryId: '',
     thumbnail: ''
   });
-  
+
   const [moduleFormData, setModuleFormData] = useState<Partial<CourseModule>>({
     title: '',
     description: '',
@@ -77,10 +77,10 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
     // Find the first course to pre-select, or use empty string if no courses exist
     const firstCourseId = courses.length > 0 ? courses[0].id : '';
     // Calculate the next order number for the selected course
-    const nextOrder = firstCourseId ? 
-      (courses.find(c => c.id === firstCourseId)?.modules.length || 0) + 1 : 
+    const nextOrder = firstCourseId ?
+      (courses.find(c => c.id === firstCourseId)?.modules.length || 0) + 1 :
       1;
-    
+
     setModuleFormData({
       title: '',
       description: '',
@@ -97,7 +97,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
   const handleEditCourse = (course: Course) => {
     setEditingType('course');
     setEditingId(course.id);
-    setCourseFormData({ 
+    setCourseFormData({
       ...course,
       title: course.title || '',
       description: course.description || '',
@@ -120,8 +120,8 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
         options: q.options.map(opt => opt || '')
       }))
     } : undefined;
-    
-    setModuleFormData({ 
+
+    setModuleFormData({
       ...module,
       courseId: module.courseId || '', // Ensure courseId is never null
       content: module.content || '',
@@ -133,7 +133,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingType === 'course') {
       if (editingId) {
         // Update existing course
@@ -165,9 +165,9 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
           level: moduleFormData.level || 'beginner',
           content: moduleFormData.content || '',
           contentType: moduleFormData.contentType || 'video',
-          order: moduleFormData.order && moduleFormData.order > 0 ? moduleFormData.order : 
-            (moduleFormData.courseId ? 
-              (modules.filter(m => m.courseId === moduleFormData.courseId).length || 0) + 1 : 
+          order: moduleFormData.order && moduleFormData.order > 0 ? moduleFormData.order :
+            (moduleFormData.courseId ?
+              (modules.filter(m => m.courseId === moduleFormData.courseId).length || 0) + 1 :
               1)
         };
         onAddModule(newModule as CourseModule);
@@ -208,7 +208,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
 
   const handleUpdateQuestion = (qId: string, field: keyof QuizQuestion, value: any) => {
     if (!moduleFormData.quiz) return;
-    const updatedQuestions = moduleFormData.quiz.questions.map(q => 
+    const updatedQuestions = moduleFormData.quiz.questions.map(q =>
       q.id === qId ? { ...q, [field]: value } : q
     );
     setModuleFormData({ ...moduleFormData, quiz: { ...moduleFormData.quiz, questions: updatedQuestions } });
@@ -228,43 +228,41 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
   };
 
   const handleDeleteQuestion = (qId: string) => {
-     if (!moduleFormData.quiz) return;
-     const updatedQuestions = moduleFormData.quiz.questions.filter(q => q.id !== qId);
-     setModuleFormData({ ...moduleFormData, quiz: { ...moduleFormData.quiz, questions: updatedQuestions } });
+    if (!moduleFormData.quiz) return;
+    const updatedQuestions = moduleFormData.quiz.questions.filter(q => q.id !== qId);
+    setModuleFormData({ ...moduleFormData, quiz: { ...moduleFormData.quiz, questions: updatedQuestions } });
   };
 
   return (
     <div className="text-white h-full flex flex-col pb-10">
       {/* Header */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-3">
-            <GraduationCap className="h-8 w-8 text-blue-500" /> 
-            Enhanced Course Curriculum
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
+            <GraduationCap className="h-6 w-6 md:h-8 md:w-8 text-blue-500 flex-shrink-0" />
+            <span className="truncate">Enhanced Course Curriculum</span>
           </h1>
-          <p className="text-gray-400 mt-1">Build and organize your complete trading academy content.</p>
+          <p className="text-gray-400 mt-1 text-sm md:text-base">Build and organize your complete trading academy content.</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-700 mb-6">
+      <div className="flex border-b border-gray-700 mb-6 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('courses')}
-          className={`px-4 py-2 font-bold flex items-center gap-2 ${
-            activeTab === 'courses' 
-              ? 'text-blue-400 border-b-2 border-blue-400' 
+          className={`px-4 py-2 font-bold flex items-center gap-2 transition-colors whitespace-nowrap flex-shrink-0 ${activeTab === 'courses'
+              ? 'text-blue-400 border-b-2 border-blue-400'
               : 'text-gray-500 hover:text-gray-300'
-          }`}
+            }`}
         >
           <BookOpen className="h-4 w-4" /> Courses
         </button>
         <button
           onClick={() => setActiveTab('modules')}
-          className={`px-4 py-2 font-bold flex items-center gap-2 ${
-            activeTab === 'modules' 
-              ? 'text-blue-400 border-b-2 border-blue-400' 
+          className={`px-4 py-2 font-bold flex items-center gap-2 transition-colors whitespace-nowrap flex-shrink-0 ${activeTab === 'modules'
+              ? 'text-blue-400 border-b-2 border-blue-400'
               : 'text-gray-500 hover:text-gray-300'
-          }`}
+            }`}
         >
           <Layers className="h-4 w-4" /> Modules
         </button>
@@ -275,7 +273,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
           <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
               {editingId ? <Edit2 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
-              {editingId 
+              {editingId
                 ? editingType === 'course' ? 'Edit Course' : 'Edit Module'
                 : editingType === 'course' ? 'Create New Course' : 'Create New Module'}
             </h2>
@@ -291,25 +289,25 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Course Title</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
                       placeholder="e.g. Market Structure Mastery"
                       value={courseFormData.title}
-                      onChange={e => setCourseFormData({...courseFormData, title: e.target.value})}
+                      onChange={e => setCourseFormData({ ...courseFormData, title: e.target.value })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Instructor</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none pl-10"
                         placeholder="Instructor name"
                         value={courseFormData.instructor}
-                        onChange={e => setCourseFormData({...courseFormData, instructor: e.target.value})}
+                        onChange={e => setCourseFormData({ ...courseFormData, instructor: e.target.value })}
                       />
                     </div>
                   </div>
@@ -317,22 +315,22 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
 
                 <div>
                   <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Description</label>
-                  <textarea 
+                  <textarea
                     required
                     className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none h-24 resize-none"
                     placeholder="Brief summary of what students will learn..."
                     value={courseFormData.description}
-                    onChange={e => setCourseFormData({...courseFormData, description: e.target.value})}
+                    onChange={e => setCourseFormData({ ...courseFormData, description: e.target.value })}
                   />
                 </div>
 
                 <div className="grid md:grid-cols-12 gap-6">
                   <div className="col-span-3">
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Level</label>
-                    <select 
+                    <select
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none capitalize"
                       value={courseFormData.level}
-                      onChange={e => setCourseFormData({...courseFormData, level: e.target.value as any})}
+                      onChange={e => setCourseFormData({ ...courseFormData, level: e.target.value as any })}
                     >
                       <option value="beginner">Beginner</option>
                       <option value="intermediate">Intermediate</option>
@@ -341,23 +339,23 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                   </div>
                   <div className="col-span-3">
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Duration</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
                       placeholder="e.g. 4 hours"
                       value={courseFormData.duration}
-                      onChange={e => setCourseFormData({...courseFormData, duration: e.target.value})}
+                      onChange={e => setCourseFormData({ ...courseFormData, duration: e.target.value })}
                     />
                   </div>
                   <div className="col-span-6">
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Category</label>
                     <div className="relative">
                       <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <select 
+                      <select
                         className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none pl-10"
                         value={courseFormData.categoryId}
-                        onChange={e => setCourseFormData({...courseFormData, categoryId: e.target.value})}
+                        onChange={e => setCourseFormData({ ...courseFormData, categoryId: e.target.value })}
                       >
                         <option value="">Select a category</option>
                         {categories.map(category => (
@@ -374,30 +372,30 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Module Title</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
                       placeholder="e.g. Understanding Market Structure"
                       value={moduleFormData.title}
-                      onChange={e => setModuleFormData({...moduleFormData, title: e.target.value})}
+                      onChange={e => setModuleFormData({ ...moduleFormData, title: e.target.value })}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Course</label>
                     <div className="relative">
                       <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                      <select 
+                      <select
                         className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none pl-10"
                         value={moduleFormData.courseId}
                         onChange={e => {
                           const newCourseId = e.target.value;
                           // Update the order number when changing courses
-                          const nextOrder = newCourseId ? 
-                            (courses.find(c => c.id === newCourseId)?.modules.length || 0) + 1 : 
+                          const nextOrder = newCourseId ?
+                            (courses.find(c => c.id === newCourseId)?.modules.length || 0) + 1 :
                             1;
                           setModuleFormData({
-                            ...moduleFormData, 
+                            ...moduleFormData,
                             courseId: newCourseId,
                             order: nextOrder
                           });
@@ -414,22 +412,22 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
 
                 <div>
                   <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Description</label>
-                  <textarea 
+                  <textarea
                     required
                     className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none h-24 resize-none"
                     placeholder="Brief summary of what the student will learn..."
                     value={moduleFormData.description}
-                    onChange={e => setModuleFormData({...moduleFormData, description: e.target.value})}
+                    onChange={e => setModuleFormData({ ...moduleFormData, description: e.target.value })}
                   />
                 </div>
 
                 <div className="grid md:grid-cols-12 gap-6">
                   <div className="col-span-3">
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Level</label>
-                    <select 
+                    <select
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none capitalize"
                       value={moduleFormData.level}
-                      onChange={e => setModuleFormData({...moduleFormData, level: e.target.value as any})}
+                      onChange={e => setModuleFormData({ ...moduleFormData, level: e.target.value as any })}
                     >
                       <option value="beginner">Beginner</option>
                       <option value="intermediate">Intermediate</option>
@@ -438,13 +436,13 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                   </div>
                   <div className="col-span-3">
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Duration</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
                       placeholder="45m"
                       value={moduleFormData.duration}
-                      onChange={e => setModuleFormData({...moduleFormData, duration: e.target.value})}
+                      onChange={e => setModuleFormData({ ...moduleFormData, duration: e.target.value })}
                     />
                   </div>
                   <div className="col-span-3">
@@ -452,14 +450,14 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                     <div className="flex gap-2 bg-black p-1 rounded-lg border border-gray-700">
                       <button
                         type="button"
-                        onClick={() => setModuleFormData({...moduleFormData, contentType: 'video'})}
+                        onClick={() => setModuleFormData({ ...moduleFormData, contentType: 'video' })}
                         className={`flex-1 py-2 rounded flex items-center justify-center gap-2 text-xs font-bold transition ${moduleFormData.contentType === 'video' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-white'}`}
                       >
                         <Video className="h-3 w-3" /> Video
                       </button>
                       <button
                         type="button"
-                        onClick={() => setModuleFormData({...moduleFormData, contentType: 'text'})}
+                        onClick={() => setModuleFormData({ ...moduleFormData, contentType: 'text' })}
                         className={`flex-1 py-2 rounded flex items-center justify-center gap-2 text-xs font-bold transition ${moduleFormData.contentType === 'text' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-white'}`}
                       >
                         <FileText className="h-3 w-3" /> Text
@@ -468,13 +466,13 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                   </div>
                   <div className="col-span-3">
                     <label className="block text-xs text-gray-400 mb-2 uppercase font-bold">Order</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       min="1"
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none"
                       placeholder="1"
                       value={moduleFormData.order}
-                      onChange={e => setModuleFormData({...moduleFormData, order: parseInt(e.target.value) || 1})}
+                      onChange={e => setModuleFormData({ ...moduleFormData, order: parseInt(e.target.value) || 1 })}
                     />
                   </div>
                 </div>
@@ -487,12 +485,12 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                     <div className="space-y-2">
                       <div className="relative">
                         <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none pl-10"
                           placeholder="https://www.youtube.com/embed/... or https://www.youtube.com/watch?v=..."
                           value={moduleFormData.content}
-                          onChange={e => setModuleFormData({...moduleFormData, content: e.target.value})}
+                          onChange={e => setModuleFormData({ ...moduleFormData, content: e.target.value })}
                         />
                       </div>
                       <p className="text-xs text-gray-500">
@@ -504,7 +502,7 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                       className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none h-32"
                       placeholder="# Lesson Title..."
                       value={moduleFormData.content}
-                      onChange={e => setModuleFormData({...moduleFormData, content: e.target.value})}
+                      onChange={e => setModuleFormData({ ...moduleFormData, content: e.target.value })}
                     />
                   )}
                 </div>
@@ -513,10 +511,10 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                 <div className="border-t border-gray-700 pt-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      <CheckSquare className="h-5 w-5 text-trade-neon" /> 
+                      <CheckSquare className="h-5 w-5 text-trade-neon" />
                       Interactive Quiz
                     </h3>
-                    <button 
+                    <button
                       type="button"
                       onClick={handleAddQuestion}
                       className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-bold text-trade-neon border border-trade-neon/30 hover:border-trade-neon transition flex items-center gap-2"
@@ -529,17 +527,17 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                     <div className="space-y-6">
                       {moduleFormData.quiz.questions.map((q, qIdx) => (
                         <div key={q.id} className="bg-gray-800/30 border border-gray-700 rounded-xl p-4 relative">
-                          <button 
+                          <button
                             type="button"
                             onClick={() => handleDeleteQuestion(q.id)}
                             className="absolute top-3 right-3 text-gray-500 hover:text-red-400"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
-                          
+
                           <div className="mb-4 pr-8">
                             <label className="block text-xs text-gray-500 mb-1 uppercase">Question {qIdx + 1}</label>
-                            <input 
+                            <input
                               type="text"
                               className="w-full bg-black border border-gray-600 rounded p-2 text-white focus:border-trade-neon outline-none"
                               placeholder="Enter question text..."
@@ -551,18 +549,17 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {q.options.map((opt, optIdx) => (
                               <div key={optIdx} className="flex items-center gap-2">
-                                <input 
-                                  type="radio" 
+                                <input
+                                  type="radio"
                                   name={`correct-${q.id}`}
                                   checked={q.correctOptionIndex === optIdx}
                                   onChange={() => handleUpdateQuestion(q.id, 'correctOptionIndex', optIdx)}
                                   className="accent-trade-neon w-4 h-4"
                                 />
-                                <input 
-                                  type="text" 
-                                  className={`flex-1 bg-black border rounded p-2 text-sm text-white outline-none ${
-                                    q.correctOptionIndex === optIdx ? 'border-trade-neon text-trade-neon' : 'border-gray-700'
-                                  }`}
+                                <input
+                                  type="text"
+                                  className={`flex-1 bg-black border rounded p-2 text-sm text-white outline-none ${q.correctOptionIndex === optIdx ? 'border-trade-neon text-trade-neon' : 'border-gray-700'
+                                    }`}
                                   placeholder={`Option ${optIdx + 1}`}
                                   value={opt}
                                   onChange={(e) => handleOptionChange(q.id, optIdx, e.target.value)}
@@ -585,14 +582,14 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
             )}
 
             <div className="flex justify-end gap-4 pt-6 border-t border-gray-700">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setIsEditing(false)}
                 className="px-6 py-3 rounded-lg font-bold text-gray-400 hover:bg-gray-800 hover:text-white transition"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 type="submit"
                 className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-900/20 flex items-center gap-2"
               >
@@ -606,11 +603,11 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
           {activeTab === 'courses' ? (
             // Courses View
             <div className="space-y-4">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                 <h3 className="text-xl font-bold text-white">Courses</h3>
-                <button 
+                <button
                   onClick={handleAddNewCourse}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition shadow-lg shadow-blue-900/20"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 text-sm transition shadow-lg shadow-blue-900/20"
                 >
                   <Plus className="h-4 w-4" /> Add Course
                 </button>
@@ -636,24 +633,23 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                             <p className="text-gray-400 text-sm mt-1">{course.description}</p>
                             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                               <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {course.duration}</span>
-                              <span className={`px-2 py-0.5 rounded capitalize border ${
-                                course.level === 'beginner' ? 'border-green-500/20 text-green-400' :
-                                course.level === 'intermediate' ? 'border-yellow-500/20 text-yellow-400' :
-                                'border-red-500/20 text-red-400'
-                              }`}>{course.level}</span>
+                              <span className={`px-2 py-0.5 rounded capitalize border ${course.level === 'beginner' ? 'border-green-500/20 text-green-400' :
+                                  course.level === 'intermediate' ? 'border-yellow-500/20 text-yellow-400' :
+                                    'border-red-500/20 text-red-400'
+                                }`}>{course.level}</span>
                               <span>{course.modules.length} modules</span>
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
+                          <button
                             onClick={() => handleEditCourse(course)}
                             className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition"
                           >
                             <Edit2 className="h-5 w-5" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteCourse(course.id)}
                             className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-lg transition"
                           >
@@ -669,11 +665,11 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
           ) : (
             // Modules View
             <div className="space-y-4">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                 <h3 className="text-xl font-bold text-white">Modules</h3>
-                <button 
+                <button
                   onClick={handleAddNewModule}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 text-sm transition shadow-lg shadow-blue-900/20"
+                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 text-sm transition shadow-lg shadow-blue-900/20"
                 >
                   <Plus className="h-4 w-4" /> Add Module
                 </button>
@@ -706,26 +702,25 @@ const EnhancedCourseBuilder: React.FC<EnhancedCourseBuilderProps> = ({
                               <p className="text-gray-400 text-sm mt-1">{module.description}</p>
                               <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {module.duration}</span>
-                                <span className={`px-2 py-0.5 rounded capitalize border ${
-                                  module.level === 'beginner' ? 'border-green-500/20 text-green-400' :
-                                  module.level === 'intermediate' ? 'border-yellow-500/20 text-yellow-400' :
-                                  'border-red-500/20 text-red-400'
-                                }`}>{module.level}</span>
+                                <span className={`px-2 py-0.5 rounded capitalize border ${module.level === 'beginner' ? 'border-green-500/20 text-green-400' :
+                                    module.level === 'intermediate' ? 'border-yellow-500/20 text-yellow-400' :
+                                      'border-red-500/20 text-red-400'
+                                  }`}>{module.level}</span>
                                 {course && (
                                   <span className="text-blue-400">Part of: {course.title}</span>
                                 )}
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button 
+                            <button
                               onClick={() => handleEditModule(module)}
                               className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition"
                             >
                               <Edit2 className="h-5 w-5" />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleDeleteModule(module.id)}
                               className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded-lg transition"
                             >

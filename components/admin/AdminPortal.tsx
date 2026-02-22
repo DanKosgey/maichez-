@@ -28,22 +28,20 @@ interface AdminPortalProps {
 const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overview', user }) => {
   const { activeTab, setActiveTab } = useAdminPortal();
 
-  // Set initial tab from URL or prop
+  // Set initial tab from prop only if not already set by provider (e.g. from localStorage)
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabFromUrl = urlParams.get('tab');
-    if (tabFromUrl && isValidTab(tabFromUrl)) {
-      setActiveTab(tabFromUrl);
-    } else if (initialTab && isValidTab(initialTab)) {
+    if (initialTab && isValidTab(initialTab) && activeTab === 'overview') {
       setActiveTab(initialTab);
     }
   }, [initialTab]);
 
-  // Update URL when tab changes
+  // Update URL search param when tab changes, but don't force it back on every render
   useEffect(() => {
-    const url = new URL(window.location as any);
-    url.searchParams.set('tab', activeTab);
-    window.history.replaceState({}, '', url);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('tab') !== activeTab) {
+      url.searchParams.set('tab', activeTab);
+      window.history.replaceState({}, '', url);
+    }
   }, [activeTab]);
 
   const isValidTab = (tab: string): tab is typeof activeTab => {

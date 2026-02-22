@@ -139,7 +139,9 @@ const StudentManagementTab: React.FC = () => {
         name: editedStudent.name,
         email: editedStudent.email,
         tier: editedStudent.tier,
-        botAccess: editedStudent.botAccess
+        botAccess: editedStudent.botAccess,
+        // Sync purchase status: if granting access, mark as completed; if denying, mark as none (unless pending)
+        botPurchaseStatus: editedStudent.botAccess ? 'completed' : 'none'
       });
 
       // Reset editing state

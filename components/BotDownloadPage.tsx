@@ -50,7 +50,9 @@ const BotDownloadPage: React.FC<BotDownloadPageProps> = ({ user }) => {
         }
     };
 
-    if (!user.botAccess && !isPending) {
+    const hasAccess = user.botAccess || user.botPurchaseStatus === 'completed';
+
+    if (!hasAccess && !isPending) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
                 <div className="relative mb-8">

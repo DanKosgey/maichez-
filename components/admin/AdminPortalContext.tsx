@@ -96,7 +96,7 @@ export const AdminPortalProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const isValidTab = (tab: string): tab is AdminTab => {
     return [
       'overview', 'directory', 'trades', 'analytics',
-      'content', 'rules', 'journal', 'admin-analytics', 'settings', 'student-management'
+      'content', 'rules', 'journal', 'admin-analytics', 'settings', 'student-management', 'bot-inquiries'
     ].includes(tab);
   };
 
