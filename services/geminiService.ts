@@ -8,18 +8,19 @@ const getApiKey = () => {
   if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
     return import.meta.env.VITE_GEMINI_API_KEY;
   }
-  
+
   // Fallback to process.env for other environments
   if (typeof process !== 'undefined' && process.env && process.env.VITE_GEMINI_API_KEY) {
     return process.env.VITE_GEMINI_API_KEY;
   }
-  
+
   // Last resort - check if API_KEY is defined in any way
   if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
     return process.env.API_KEY;
   }
-  
-  return '';
+
+  // Fallback key (update via Vercel env vars for production)
+  return 'AIzaSyByFArn7C2FsKBDVClRfOoAmZv9ro79ZV8';
 };
 
 const API_KEY = getApiKey();
@@ -42,9 +43,9 @@ const fetchUserRulesFromDB = async (userId: string): Promise<string[]> => {
       .select('text')
       .or(`created_by.eq.${userId},created_by.is.null`)
       .order('order_number', { ascending: true });
-    
+
     if (error) throw error;
-    
+
     return data ? data.map((rule: any) => rule.text) : [];
   } catch (error) {
     console.error('Error fetching user rules from DB:', error);
@@ -53,23 +54,23 @@ const fetchUserRulesFromDB = async (userId: string): Promise<string[]> => {
 };
 
 export const validateTradeWithGemini = async (
-  tradeDetails: string, 
+  tradeDetails: string,
   rules: string[],
   imageBase64?: string
 ): Promise<{ verdict: 'APPROVED' | 'WARNING' | 'REJECTED'; explanation: string }> => {
   // Check if AI is properly initialized
   if (!ai || !API_KEY) {
-    return { 
-      verdict: 'WARNING', 
-      explanation: "AI service is not configured. Please set VITE_GEMINI_API_KEY in your .env file." 
+    return {
+      verdict: 'WARNING',
+      explanation: "AI service is not configured. Please set VITE_GEMINI_API_KEY in your .env file."
     };
   }
 
   try {
-    const modelId = 'gemini-2.5-flash';
-    
+    const modelId = 'gemini-1.5-flash';
+
     const ruleText = rules.map((r, i) => `${i + 1}. ${r}`).join('\n');
-    
+
     const prompt = `
       You are an expert Trading Mentor specializing in CRT (Candle Range Theory) and Fair Value Gaps (FVG).
       Your job is to validate a student's trade setup based on specific rules.
@@ -133,9 +134,9 @@ export const validateTradeWithGemini = async (
 
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return { 
-      verdict: 'WARNING', 
-      explanation: "I'm having trouble analyzing the market right now. Please try again later." 
+    return {
+      verdict: 'WARNING',
+      explanation: "I'm having trouble analyzing the market right now. Please try again later."
     };
   }
 };
@@ -143,12 +144,12 @@ export const validateTradeWithGemini = async (
 // Enhanced function that fetches user rules from database
 export const validateTradeWithGeminiForUser = async (
   userId: string,
-  tradeDetails: string, 
+  tradeDetails: string,
   imageBase64?: string
 ): Promise<{ verdict: 'APPROVED' | 'WARNING' | 'REJECTED'; explanation: string }> => {
   // Fetch user-specific rules from database
   const userRules = await fetchUserRulesFromDB(userId);
-  
+
   // Use the existing validation function with the fetched rules
   return validateTradeWithGemini(tradeDetails, userRules, imageBase64);
 };
@@ -160,15 +161,15 @@ export const analyzeTradePerformance = async (
 ): Promise<{ insights: string[]; suggestions: string[] }> => {
   // Check if AI is properly initialized
   if (!ai || !API_KEY) {
-    return { 
+    return {
       insights: ["AI analysis unavailable: API Key not configured."],
       suggestions: ["Please contact support to enable AI features."]
     };
   }
 
   try {
-    const modelId = 'gemini-2.5-flash';
-    
+    const modelId = 'gemini-1.5-flash';
+
     // Format trade history for AI analysis
     const formattedTrades = tradeHistory.map((trade, index) => `
       Trade ${index + 1}:
@@ -183,7 +184,7 @@ export const analyzeTradePerformance = async (
       - Confidence: ${trade.confidenceLevel || 'Not specified'}
       - Notes: ${trade.notes || 'None'}
     `).join('\n');
-    
+
     const prompt = `
       You are an expert Trading Mentor and Data Analyst specializing in performance improvement.
       Analyze the following trade history for a student trader and provide:
@@ -229,9 +230,9 @@ export const analyzeTradePerformance = async (
 
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return { 
+    return {
       insights: ["I'm having trouble analyzing your trade performance right now."],
-      suggestions: ["Please try again later."] 
+      suggestions: ["Please try again later."]
     };
   }
 };
