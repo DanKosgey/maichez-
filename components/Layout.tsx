@@ -36,14 +36,14 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, on
       { id: 'analytics', label: 'Analytics', icon: PieIcon },
       { id: 'content', label: 'Courses', icon: GraduationCap },
       { id: 'rules', label: 'Rules', icon: Settings },
-      { id: 'bot', label: 'Alpha Bot', icon: Zap },
+      { id: 'bot-inquiries', label: 'Bot Inquiries', icon: Zap },
     ];
   } else {
     menuItems = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'courses', label: 'Courses', icon: GraduationCap },
       { id: 'ai', label: 'AI', icon: Bot, premium: true },
-      { id: 'bot', label: 'Alpha Bot', icon: Zap, premium: true },
+      { id: 'bot', label: 'Zeta Bot', icon: Zap, premium: true },
       { id: 'journal', label: 'Journal', icon: BookOpen },
       { id: 'todos', label: 'Tasks', icon: CheckSquare },
       { id: 'community', label: 'Community', icon: Users },

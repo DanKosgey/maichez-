@@ -83,9 +83,9 @@ const BotInquiriesTab: React.FC = () => {
                 <div>
                     <h2 className="text-2xl font-black flex items-center gap-3">
                         <Bot className="h-7 w-7 text-brand-primary" />
-                        Bot Purchase Inquiries
+                        Zeta Expert Inquiries
                     </h2>
-                    <p className="text-slate-400">Manage and approve MQL5 Bot access requests</p>
+                    <p className="text-slate-400">Manage and approve Zeta Expert Bot access requests</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -145,8 +145,8 @@ const BotInquiriesTab: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className={`px-2 py-1 rounded-md text-[10px] font-black uppercase ${student.tier === 'elite' ? 'bg-violet-500/20 text-violet-400' :
-                                            student.tier === 'professional' ? 'bg-brand-primary/20 text-brand-primary' :
-                                                'bg-slate-700 text-slate-400'
+                                        student.tier === 'professional' ? 'bg-brand-primary/20 text-brand-primary' :
+                                            'bg-slate-700 text-slate-400'
                                         }`}>
                                         {student.tier}
                                     </div>
@@ -155,11 +155,11 @@ const BotInquiriesTab: React.FC = () => {
                                 <div className="space-y-3 mb-6">
                                     <div className="flex items-center justify-between text-xs py-2 border-b border-slate-700/50">
                                         <span className="text-slate-500">Requested Bot</span>
-                                        <span className="text-white font-bold italic">Alpha-V5</span>
+                                        <span className="text-white font-bold italic">Zeta Expert</span>
                                     </div>
                                     <div className="flex items-center justify-between text-xs py-2 border-b border-slate-700/50">
                                         <span className="text-slate-500">Price</span>
-                                        <span className="text-green-400 font-bold">$499.00</span>
+                                        <span className="text-green-400 font-bold">$299.00</span>
                                     </div>
                                     <div className="flex items-center justify-between text-xs py-2">
                                         <span className="text-slate-500">Requested On</span>

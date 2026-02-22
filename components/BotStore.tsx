@@ -150,7 +150,7 @@ const BotStore: React.FC<BotStoreProps> = ({ user, onUpdateUser }) => {
                 <div className="lg:col-span-1">
                     <div className="sticky top-24 bg-white rounded-3xl border-2 border-slate-900 p-8 shadow-xl">
                         <div className="text-sm font-black text-brand-primary mb-2 uppercase">Lifetime Access</div>
-                        <div className="text-5xl font-black text-slate-900 mb-6">$499 <span className="text-lg text-slate-400 font-normal">USD</span></div>
+                        <div className="text-5xl font-black text-slate-900 mb-6">$299 <span className="text-lg text-slate-400 font-normal">USD</span></div>
 
                         <div className="space-y-4 mb-8">
                             {[

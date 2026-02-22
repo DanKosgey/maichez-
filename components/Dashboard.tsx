@@ -366,10 +366,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, courses, onContinueCourse }
                 <div className={`p-1.5 md:p-2 rounded ${user.botAccess ? 'bg-emerald-500/20 text-emerald-400' : 'bg-brand-primary/20 text-brand-primary'}`}>
                   <Bot className="h-4 w-4 md:h-5 md:w-5" />
                 </div>
-                <span className="text-gray-400 text-xs md:text-sm">MQL5 Bot</span>
+                <span className="text-gray-400 text-xs md:text-sm">Zeta Bot</span>
               </div>
               <div className="text-lg md:text-xl font-black mb-1">
-                {user.botAccess ? 'Alpha-V5 Ready' : 'Bot Store'}
+                {user.botAccess ? 'Zeta Expert Ready' : 'Bot Store'}
               </div>
               <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">
                 {user.botAccess ? 'Active License' : 'Upgrade Required'}
