@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Bot,
+    Cpu as Bot,
     ShieldCheck,
     Zap,
     Target,

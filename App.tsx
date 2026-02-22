@@ -10,7 +10,7 @@ import LandingPage from './components/LandingPage';
 import EliteApplicationForm from './components/EliteApplicationForm';
 import RuleBuilder from './components/RuleBuilder';
 import CourseManagementSystem from './components/enhanced/CourseManagementSystem';
-import { ShieldAlert, Settings, Bot, BarChart, CheckSquare, PlayCircle, ArrowRight, Lock } from 'lucide-react';
+import { ShieldAlert, Settings, Cpu as Bot, BarChart, CheckSquare, PlayCircle, ArrowRight, Lock } from 'lucide-react';
 import TradeJournal from './components/TradeJournal';
 import CommunityHub from './components/CommunityHub';
 import QuizPlayer from './components/QuizPlayer';

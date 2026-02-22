@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, BotAsset } from '../types';
 import { fetchBotAssets } from '../services/adminService';
 import {
-    Bot,
+    Cpu as Bot,
     Download,
     ShieldCheck,
     Zap,

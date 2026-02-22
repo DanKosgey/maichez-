@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { User, CourseModule, TradeEntry } from '../types';
-import { PlayCircle, Award, TrendingUp, Clock, CalendarPlus, CheckCircle, AlertTriangle, Activity, DollarSign, TrendingDown, Percent, BookOpen, Bot } from 'lucide-react';
+import { PlayCircle, Award, TrendingUp, Clock, CalendarPlus, CheckCircle, AlertTriangle, Activity, DollarSign, TrendingDown, Percent, BookOpen, Cpu as Bot } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   AreaChart, Area, CartesianGrid

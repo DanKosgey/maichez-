@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, GraduationCap, Bot, BookOpen, Users, LogOut, Settings, ShieldAlert, Layers, PieChart as PieIcon, CheckSquare, X, Menu, Zap } from 'lucide-react';
+import { LayoutDashboard, GraduationCap, Cpu as Bot, BookOpen, Users, LogOut, Settings, ShieldAlert, Layers, PieChart as PieIcon, CheckSquare, X, Menu, Zap } from 'lucide-react';
 import { User } from '../types';
 import NavigationButtons from './NavigationButtons';
 import { APP_DISPLAY_NAMES } from '../lib/constants';
