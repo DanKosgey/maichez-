@@ -574,6 +574,9 @@ const EnhancedCourseViewer: React.FC<EnhancedCourseViewerProps> = ({
           </div>
         </div>
       </div>
+    );
+  };
+
   const renderModuleDetail = () => {
       if (!selectedModule) return null;
 
