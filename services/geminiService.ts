@@ -67,7 +67,7 @@ export const validateTradeWithGemini = async (
   }
 
   try {
-    const modelId = 'gemini-1.5-flash';
+    const modelId = 'gemini-2.5-flash';
 
     const ruleText = rules.map((r, i) => `${i + 1}. ${r}`).join('\n');
 
@@ -168,7 +168,7 @@ export const analyzeTradePerformance = async (
   }
 
   try {
-    const modelId = 'gemini-1.5-flash';
+    const modelId = 'gemini-2.5-flash';
 
     // Format trade history for AI analysis
     const formattedTrades = tradeHistory.map((trade, index) => `
