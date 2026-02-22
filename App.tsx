@@ -474,7 +474,7 @@ const App: React.FC = () => {
   if (user) {
     const renderContent = () => {
       // --- ACCESS CONTROL CHECK ---
-      const isAdminView = ['overview', 'directory', 'student-management', 'trades', 'analytics', 'content', 'rules', 'journal', 'admin-analytics', 'settings', 'bot-inquiries', 'bot'].includes(portalView);
+      const isAdminView = ['overview', 'admin-dashboard', 'dashboard', 'directory', 'student-management', 'trades', 'analytics', 'content', 'rules', 'journal', 'admin-analytics', 'settings', 'bot-inquiries', 'bot'].includes(portalView);
       if (user.role !== 'admin' && isAdminView) {
         return (
           <div className="flex flex-col items-center justify-center h-[60vh] text-center animate-in fade-in zoom-in duration-300">
@@ -558,7 +558,7 @@ const App: React.FC = () => {
             );
           default:
             // Check if it's an admin tab that should use AdminPortal
-            const isAdminTab = ['overview', 'directory', 'student-management', 'trades', 'analytics', 'content', 'rules', 'journal', 'admin-analytics', 'settings', 'bot-inquiries', 'bot'].includes(portalView);
+            const isAdminTab = ['overview', 'admin-dashboard', 'dashboard', 'directory', 'student-management', 'trades', 'analytics', 'content', 'rules', 'journal', 'admin-analytics', 'settings', 'bot-inquiries', 'bot'].includes(portalView);
 
             if (isAdminTab) {
               return (

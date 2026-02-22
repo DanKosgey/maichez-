@@ -3,7 +3,7 @@ import { useAdminPortal } from '../AdminPortalContext';
 import { fetchBotAssets, uploadBotAsset, deleteBotAsset } from '../../../services/adminService';
 import { BotAsset, StudentProfile } from '../../../types';
 import {
-  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Bot
+  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Cpu as Bot
 } from 'lucide-react';
 
 const StudentManagementTab: React.FC = () => {

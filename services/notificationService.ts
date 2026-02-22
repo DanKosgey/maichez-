@@ -223,7 +223,7 @@ export const notificationService = {
 
       // Wait a moment for the notification to be created and committed
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
       // Try to fetch the notification by ID first (if data is a valid UUID)
       if (data && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data)) {
         try {
@@ -232,7 +232,7 @@ export const notificationService = {
             .select('*')
             .eq('id', data)
             .single();
-            
+
           if (!fetchError && notificationData) {
             return {
               id: notificationData.id,
@@ -251,7 +251,7 @@ export const notificationService = {
           console.warn('Failed to fetch notification by ID, falling back to profile-based fetch:', fetchError);
         }
       }
-      
+
       // Fallback: Fetch the most recent notification for this user
       const { data: notificationData, error: fetchError } = await supabase
         .from('notifications')
@@ -295,7 +295,7 @@ export const notificationService = {
 
       // Wait a moment for the notification to be created and committed
       await new Promise(resolve => setTimeout(resolve, 200));
-      
+
       // Try to fetch the notification by ID first (if data is a valid UUID)
       if (data && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data)) {
         try {
@@ -304,7 +304,7 @@ export const notificationService = {
             .select('*')
             .eq('id', data)
             .single();
-            
+
           if (!fetchError && notificationData) {
             return {
               id: notificationData.id,
@@ -323,7 +323,7 @@ export const notificationService = {
           console.warn('Failed to fetch notification by ID, falling back to profile-based fetch:', fetchError);
         }
       }
-      
+
       // Fallback: Fetch the most recent notification for this user
       const { data: notificationData, error: fetchError } = await supabase
         .from('notifications')
@@ -390,7 +390,7 @@ export const notificationService = {
         .upsert({
           profile_id: userId,
           ...preferences,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         }, {
           onConflict: 'profile_id'
         });
@@ -410,7 +410,7 @@ export const notificationService = {
         .from('notification_preferences')
         .select('*')
         .eq('profile_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
