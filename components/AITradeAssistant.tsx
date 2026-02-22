@@ -58,7 +58,7 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
                 </>
               )}
             </div>
-            <div className="whitespace-pre-wrap leading-relaxed text-gray-200">
+            <div className="whitespace-pre-wrap break-words leading-relaxed text-gray-200 overflow-x-auto">
               {parsed.explanation}
             </div>
           </div>
@@ -69,7 +69,7 @@ const AITradeAssistant: React.FC<AITradeAssistantProps> = ({ userId, onLogTrade 
     }
 
     // Render as plain text
-    return <div className="whitespace-pre-wrap leading-relaxed text-gray-200">{msg.text}</div>;
+    return <div className="whitespace-pre-wrap break-words leading-relaxed text-gray-200 overflow-x-auto">{msg.text}</div>;
   };
 
   // Load user rules on component mount

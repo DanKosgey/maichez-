@@ -9,7 +9,7 @@ const AdminAnalyticsTab: React.FC = () => {
   const { students } = useAdminPortal();
   const [adminTrades, setAdminTrades] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Calculate admin stats
   const adminStats = adminTrades.length > 0 ? (() => {
     const closedTrades = adminTrades.filter(t => t.status !== 'pending');
@@ -22,7 +22,7 @@ const AdminAnalyticsTab: React.FC = () => {
     const winSum = adminTrades.filter(t => t.status === 'win').reduce((sum, t) => sum + (t.pnl || 0), 0);
     const lossSum = Math.abs(adminTrades.filter(t => t.status === 'loss').reduce((sum, t) => sum + (t.pnl || 0), 0));
     const profitFactor = lossSum > 0 ? winSum / lossSum : 0;
-    
+
     const pairStats: Record<string, { wins: number; losses: number; pnl: number }> = {};
     adminTrades.forEach(trade => {
       const pair = trade.pair || 'Unknown';
@@ -31,9 +31,9 @@ const AdminAnalyticsTab: React.FC = () => {
       if (trade.status === 'loss') pairStats[pair].losses++;
       pairStats[pair].pnl += trade.pnl || 0;
     });
-    
-    const bestAsset = Object.entries(pairStats).sort(([,a],[,b]) => b.pnl - a.pnl)[0]?.[0] || '-';
-    
+
+    const bestAsset = Object.entries(pairStats).sort(([, a], [, b]) => b.pnl - a.pnl)[0]?.[0] || '-';
+
     return { totalPnL, winRate, totalTrades: adminTrades.length, bestAsset, largestWin, largestLoss, profitFactor, pairStats };
   })() : {
     totalPnL: 0,
@@ -45,7 +45,7 @@ const AdminAnalyticsTab: React.FC = () => {
     profitFactor: 0,
     pairStats: {}
   };
-  
+
   // P&L over time data
   const pnlOverTimeData = adminTrades.length > 0 ? (() => {
     const sortedTrades = [...adminTrades].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -54,7 +54,7 @@ const AdminAnalyticsTab: React.FC = () => {
       const date = new Date(trade.date).toLocaleDateString();
       tradesByDate[date] = (tradesByDate[date] || 0) + (trade.pnl || 0);
     });
-    
+
     const dates = Object.keys(tradesByDate).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
     let cumulativePnL = 0;
     return dates.map(date => {
@@ -62,7 +62,7 @@ const AdminAnalyticsTab: React.FC = () => {
       return { date, dailyPnL: tradesByDate[date], cumulativePnL };
     });
   })() : [];
-  
+
   // Fetch admin trades
   useEffect(() => {
     const fetchAdminTrades = async () => {
@@ -79,10 +79,10 @@ const AdminAnalyticsTab: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     fetchAdminTrades();
   }, []);
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -90,14 +90,14 @@ const AdminAnalyticsTab: React.FC = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-8 animate-slide-up">
       <div>
         <h2 className="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-trade-neon to-blue-400">Admin Performance Analytics</h2>
         <p className="text-gray-400">Personal trading performance and analytics</p>
       </div>
-      
+
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 backdrop-blur-sm shadow-xl hover:scale-105 transition-transform">
@@ -131,7 +131,7 @@ const AdminAnalyticsTab: React.FC = () => {
           <div className="text-3xl font-extrabold text-yellow-400">{adminStats.bestAsset}</div>
         </div>
       </div>
-      
+
       {/* Additional Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 backdrop-blur-sm shadow-xl">
@@ -156,12 +156,12 @@ const AdminAnalyticsTab: React.FC = () => {
           <div className="text-3xl font-extrabold text-blue-400">{adminStats.profitFactor.toFixed(2)}</div>
         </div>
       </div>
-      
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
           <h3 className="font-bold text-xl mb-6 text-gray-200">P&L Over Time</h3>
-          <div className="h-72">
+          <div className="h-64 sm:h-72">
             {pnlOverTimeData.length > 0 ? (
               <ResponsiveContainer>
                 <AreaChart data={pnlOverTimeData}>
@@ -171,10 +171,10 @@ const AdminAnalyticsTab: React.FC = () => {
                       <stop offset="95%" stopColor={adminStats.totalPnL >= 0 ? '#10b981' : '#ef4444'} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
+                  <XAxis dataKey="date" stroke="#94a3b8" fontSize={10} tickMargin={5} />
+                  <YAxis stroke="#94a3b8" fontSize={10} hide={window.innerWidth < 640} />
                   <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
-                  <Tooltip contentStyle={{backgroundColor: '#1f2937', border: '1px solid #475569', borderRadius: '8px'}} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #475569', borderRadius: '8px' }} />
                   <Area type="monotone" dataKey="cumulativePnL" stroke={adminStats.totalPnL >= 0 ? '#10b981' : '#ef4444'} fill="url(#pnlGradient)" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -185,13 +185,13 @@ const AdminAnalyticsTab: React.FC = () => {
         </div>
         <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
           <h3 className="font-bold text-xl mb-6 text-gray-200">Asset Performance</h3>
-          <div className="h-72">
+          <div className="h-64 sm:h-72">
             {Object.keys(adminStats.pairStats).length > 0 ? (
               <ResponsiveContainer>
                 <BarChart data={Object.entries(adminStats.pairStats).map(([name, value]) => ({ name, pnl: (value as { pnl: number }).pnl }))}>
-                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-                  <YAxis stroke="#94a3b8" fontSize={12} />
-                  <Tooltip contentStyle={{backgroundColor: '#1f2937', border: '1px solid #475569', borderRadius: '8px'}} />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickMargin={5} />
+                  <YAxis stroke="#94a3b8" fontSize={10} hide={window.innerWidth < 640} />
+                  <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #475569', borderRadius: '8px' }} />
                   <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
                     {Object.entries(adminStats.pairStats).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={(entry[1] as { pnl: number }).pnl >= 0 ? '#10b981' : '#ef4444'} />
@@ -205,7 +205,7 @@ const AdminAnalyticsTab: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Class Analytics */}
       <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
         <h3 className="font-bold text-xl mb-6 text-gray-200">Class Performance Overview</h3>

@@ -10,7 +10,7 @@ const TradesTab: React.FC = () => {
   const [filterPair, setFilterPair] = useState('all');
   const [filterOutcome, setFilterOutcome] = useState('all');
   const [filterStrategy, setFilterStrategy] = useState('all');
-  
+
   // Get unique pairs for filter dropdown
   const uniquePairs = useMemo(() => {
     return Array.from(new Set(trades.map(t => t.pair).filter(Boolean)));
@@ -41,11 +41,11 @@ const TradesTab: React.FC = () => {
     }));
   }, [trades]);
 
-  const filteredTrades = tableData.filter(trade => 
+  const filteredTrades = tableData.filter(trade =>
     (trade.student.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    trade.pair.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    trade.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    trade.strategy.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      trade.pair.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trade.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trade.strategy.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (filterPair === 'all' || trade.pair === filterPair) &&
     (filterOutcome === 'all' || trade.status === filterOutcome) &&
     (filterStrategy === 'all' || trade.strategy === filterStrategy)
@@ -58,7 +58,7 @@ const TradesTab: React.FC = () => {
     const losses = filteredTrades.filter(t => t.status === 'loss').length;
     const winRate = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
     const netPnL = filteredTrades.reduce((s, t) => s + (t.pnl || 0), 0);
-    
+
     // P&L by pair
     const pairStats: Record<string, { pnl: number; count: number }> = {};
     filteredTrades.forEach(t => {
@@ -70,12 +70,12 @@ const TradesTab: React.FC = () => {
         pairStats[t.pair].count += 1;
       }
     });
-    
+
     // Convert to array and sort by absolute P&L value
     const pairData = Object.entries(pairStats)
       .map(([name, { pnl, count }]) => ({ name, value: pnl, count }))
       .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
-    
+
     return { total, wins, losses, winRate, netPnL, pairData };
   }, [filteredTrades]);
 
@@ -174,9 +174,9 @@ const TradesTab: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select 
-            value={filterPair} 
-            onChange={e => setFilterPair(e.target.value)} 
+          <select
+            value={filterPair}
+            onChange={e => setFilterPair(e.target.value)}
             className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-trade-neon outline-none"
           >
             <option value="all">All Pairs</option>
@@ -184,9 +184,9 @@ const TradesTab: React.FC = () => {
               <option key={pair} value={pair}>{pair}</option>
             ))}
           </select>
-          <select 
-            value={filterOutcome} 
-            onChange={e => setFilterOutcome(e.target.value)} 
+          <select
+            value={filterOutcome}
+            onChange={e => setFilterOutcome(e.target.value)}
             className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-trade-neon outline-none"
           >
             <option value="all">All Outcomes</option>
@@ -194,9 +194,9 @@ const TradesTab: React.FC = () => {
             <option value="loss">Losses</option>
             <option value="breakeven">Breakeven</option>
           </select>
-          <select 
-            value={filterStrategy} 
-            onChange={e => setFilterStrategy(e.target.value)} 
+          <select
+            value={filterStrategy}
+            onChange={e => setFilterStrategy(e.target.value)}
             className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-trade-neon outline-none"
           >
             <option value="all">All Strategies</option>
@@ -207,7 +207,7 @@ const TradesTab: React.FC = () => {
         </div>
 
         {/* Trades Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar pb-4">
           <table className="w-full">
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-700/50">
@@ -278,46 +278,46 @@ const TradesTab: React.FC = () => {
       {/* P&L by Asset Chart */}
       <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700/50 shadow-xl">
         <h3 className="font-bold text-xl mb-6 text-gray-200">P&L by Asset</h3>
-        <div className="h-72">
+        <div className="h-64 md:h-72">
           {tradeAnalytics.pairData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={tradeAnalytics.pairData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#94a3b8" 
+                <XAxis
+                  dataKey="name"
+                  stroke="#94a3b8"
                   fontSize={12}
                   tick={{ fill: '#94a3b8' }}
                 />
-                <YAxis 
-                  stroke="#94a3b8" 
+                <YAxis
+                  stroke="#94a3b8"
                   fontSize={12}
                   tick={{ fill: '#94a3b8' }}
                   tickFormatter={(value) => `$${value}`}
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1f2937', 
-                    border: '1px solid #475569', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1f2937',
+                    border: '1px solid #475569',
                     borderRadius: '8px',
                     color: '#fff'
-                  }} 
+                  }}
                   formatter={(value) => [`$${value}`, 'P&L']}
                   labelFormatter={(label) => `Asset: ${label}`}
                 />
-                <Bar 
-                  dataKey="value" 
-                  name="P&L" 
-                  fill="#00ff94" 
+                <Bar
+                  dataKey="value"
+                  name="P&L"
+                  fill="#00ff94"
                   radius={[4, 4, 0, 0]}
                 >
                   {tradeAnalytics.pairData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.value >= 0 ? '#00ff94' : '#ef4444'} 
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.value >= 0 ? '#00ff94' : '#ef4444'}
                     />
                   ))}
                 </Bar>
@@ -327,14 +327,14 @@ const TradesTab: React.FC = () => {
             <div className="flex items-center justify-center h-full text-gray-400">No data available</div>
           )}
         </div>
-        
+
         {/* Asset Details */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tradeAnalytics.pairData.map((asset, index) => (
             <div key={asset.name} className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg border border-gray-700/30">
               <div className="flex items-center gap-3">
-                <div 
-                  className="w-3 h-3 rounded-full" 
+                <div
+                  className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: asset.value >= 0 ? '#00ff94' : '#ef4444' }}
                 ></div>
                 <span className="text-white font-medium">{asset.name}</span>

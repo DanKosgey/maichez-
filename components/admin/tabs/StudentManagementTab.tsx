@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
 import { StudentProfile } from '../../../types';
-import { 
-  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle 
+import {
+  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle
 } from 'lucide-react';
 
 const StudentManagementTab: React.FC = () => {
@@ -20,14 +20,14 @@ const StudentManagementTab: React.FC = () => {
     return students.map(student => {
       // Find trades for this student
       const studentTrades = trades.filter(trade => trade.studentId === student.id);
-      
+
       // Calculate additional trade stats
       const totalTrades = studentTrades.length;
       const wins = studentTrades.filter(t => t.status === 'win').length;
       const losses = studentTrades.filter(t => t.status === 'loss').length;
       const winRate = totalTrades > 0 ? Math.round((wins / totalTrades) * 100) : 0;
       const totalPnL = studentTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
-      
+
       return {
         ...student,
         stats: {
@@ -56,10 +56,10 @@ const StudentManagementTab: React.FC = () => {
     recentTrades: student.recentTrades || []
   }));
 
-  const filteredStudents = tableData.filter(student => 
+  const filteredStudents = tableData.filter(student =>
     (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.tier.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.tier.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (filterTier === 'all' || student.tier === filterTier)
   );
 
@@ -80,7 +80,7 @@ const StudentManagementTab: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Update the profile in the database
       await updateStudentProfile(editingStudentId, {
         name: editedStudent.name,
@@ -92,10 +92,10 @@ const StudentManagementTab: React.FC = () => {
       setEditingStudentId(null);
       setEditedStudent(null);
       setSuccess('Student profile updated successfully!');
-      
+
       // Refresh the data
       await refreshData();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
@@ -121,15 +121,15 @@ const StudentManagementTab: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Delete the profile from the database
       await deleteStudentProfile(studentId);
 
       setSuccess('Student profile deleted successfully!');
-      
+
       // Refresh the data
       await refreshData();
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
@@ -188,7 +188,7 @@ const StudentManagementTab: React.FC = () => {
         <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-red-400" />
           <span className="text-red-400">{error}</span>
-          <button 
+          <button
             onClick={() => setError(null)}
             className="ml-auto text-red-400 hover:text-red-300"
           >
@@ -212,9 +212,9 @@ const StudentManagementTab: React.FC = () => {
               />
             </div>
           </div>
-          <select 
-            value={filterTier} 
-            onChange={e => setFilterTier(e.target.value)} 
+          <select
+            value={filterTier}
+            onChange={e => setFilterTier(e.target.value)}
             className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-trade-neon outline-none"
           >
             <option value="all">All Tiers</option>
@@ -226,7 +226,7 @@ const StudentManagementTab: React.FC = () => {
         </div>
 
         {/* Students Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto no-scrollbar pb-4">
           <table className="w-full">
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-700/50">
@@ -254,13 +254,13 @@ const StudentManagementTab: React.FC = () => {
                             <input
                               type="text"
                               value={editedStudent?.name || ''}
-                              onChange={(e) => setEditedStudent({...editedStudent, name: e.target.value})}
+                              onChange={(e) => setEditedStudent({ ...editedStudent, name: e.target.value })}
                               className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white mb-1"
                             />
                             <input
                               type="email"
                               value={editedStudent?.email || ''}
-                              onChange={(e) => setEditedStudent({...editedStudent, email: e.target.value})}
+                              onChange={(e) => setEditedStudent({ ...editedStudent, email: e.target.value })}
                               className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white text-xs"
                             />
                           </div>
@@ -269,7 +269,7 @@ const StudentManagementTab: React.FC = () => {
                       <td className="py-4">
                         <select
                           value={editedStudent?.tier || student.tier}
-                          onChange={(e) => setEditedStudent({...editedStudent, tier: e.target.value})}
+                          onChange={(e) => setEditedStudent({ ...editedStudent, tier: e.target.value })}
                           className="bg-gray-900 border border-gray-700 rounded px-2 py-1 text-white"
                         >
                           <option value="free">Free</option>
@@ -288,14 +288,14 @@ const StudentManagementTab: React.FC = () => {
                       <td className="py-4 text-white">{student.winRate}</td>
                       <td className="py-4">
                         <div className="flex gap-2">
-                          <button 
+                          <button
                             onClick={handleSaveEdit}
                             disabled={loading}
                             className="p-2 bg-green-600 hover:bg-green-500 text-white rounded-lg disabled:opacity-50"
                           >
                             <Save className="h-4 w-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={handleCancelEdit}
                             disabled={loading}
                             className="p-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg disabled:opacity-50"
@@ -334,13 +334,13 @@ const StudentManagementTab: React.FC = () => {
                       <td className="py-4 text-white">{student.winRate}</td>
                       <td className="py-4">
                         <div className="flex gap-2">
-                          <button 
+                          <button
                             onClick={() => handleEditClick(student)}
                             className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteStudent(student.id, student.name)}
                             disabled={loading}
                             className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg disabled:opacity-50"

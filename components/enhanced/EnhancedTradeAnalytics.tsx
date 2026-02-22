@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, 
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, AreaChart, Area, CartesianGrid, Legend, LineChart, Line
 } from 'recharts';
-import { 
-  TrendingUp, TrendingDown, Activity, Target, Award, 
+import {
+  TrendingUp, TrendingDown, Activity, Target, Award,
   Clock, DollarSign, BarChart2, Users, Zap, Filter, Search, Brain
 } from 'lucide-react';
 import { journalService } from '../../services/journalService';
@@ -43,9 +43,9 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
   const [pairData, setPairData] = useState<TradeDistribution[]>([]);
   const [strategyData, setStrategyData] = useState<TradeDistribution[]>([]);
   const [timeFrameData, setTimeFrameData] = useState<TradeDistribution[]>([]);
-  const [confidenceData, setConfidenceData] = useState<{level: number, count: number}[]>([]);
-  const [pnlOverTime, setPnlOverTime] = useState<{date: string, pnl: number}[]>([]);
-  const [winLossData, setWinLossData] = useState<{name: string, value: number, color: string}[]>([]);
+  const [confidenceData, setConfidenceData] = useState<{ level: number, count: number }[]>([]);
+  const [pnlOverTime, setPnlOverTime] = useState<{ date: string, pnl: number }[]>([]);
+  const [winLossData, setWinLossData] = useState<{ name: string, value: number, color: string }[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPair, setFilterPair] = useState('all');
   const [filterStrategy, setFilterStrategy] = useState('all');
@@ -56,7 +56,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
     const fetchAnalytics = async () => {
       try {
         setLoading(true);
-        
+
         if (userId) {
           // Fetch detailed stats for a specific user
           const stats = await journalService.getStudentDetailedStats(userId);
@@ -95,7 +95,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
             avgTradeDuration: 'PT45M'
           });
         }
-        
+
         // Mock data for visualizations
         setPairData([
           { name: 'EURUSD', value: 35, color: '#00ff94' },
@@ -105,7 +105,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           { name: 'USDCAD', value: 8, color: '#ef4444' },
           { name: 'Others', value: 5, color: '#64748b' }
         ]);
-        
+
         setStrategyData([
           { name: 'Breakout', value: 30, color: '#00ff94' },
           { name: 'Pullback', value: 25, color: '#3b82f6' },
@@ -113,14 +113,14 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           { name: 'Mean Reversion', value: 15, color: '#f59e0b' },
           { name: 'News Trade', value: 10, color: '#ef4444' }
         ]);
-        
+
         setTimeFrameData([
           { name: '1H', value: 40, color: '#00ff94' },
           { name: '4H', value: 30, color: '#3b82f6' },
           { name: 'Daily', value: 20, color: '#a855f7' },
           { name: 'Weekly', value: 10, color: '#f59e0b' }
         ]);
-        
+
         setConfidenceData([
           { level: 1, count: 2 },
           { level: 2, count: 5 },
@@ -133,7 +133,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           { level: 9, count: 42 },
           { level: 10, count: 18 }
         ]);
-        
+
         setPnlOverTime([
           { date: 'Jan', pnl: 1200 },
           { date: 'Feb', pnl: 2300 },
@@ -142,12 +142,12 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           { date: 'May', pnl: 2800 },
           { date: 'Jun', pnl: 4100 }
         ]);
-        
+
         setWinLossData([
           { name: 'Wins', value: 58, color: '#10b981' },
           { name: 'Losses', value: 42, color: '#ef4444' }
         ]);
-        
+
         // Mock AI insights for admin view
         setAiInsights([
           "Overall class performance has improved by 8% this quarter.",
@@ -155,7 +155,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           "Most common mistake: Entering trades without proper confluence.",
           "Elite tier students show 23% higher win rates than Foundation tier."
         ]);
-        
+
         setAiSuggestions([
           "Consider adding more modules on patience and trade selection.",
           "Implement mentorship programs for Foundation tier students.",
@@ -185,8 +185,8 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
     return (
       <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-6 text-center">
         <p className="text-red-200">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white"
         >
           Retry
@@ -201,27 +201,27 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
       <div className="flex flex-col md:flex-row justify-between md:items-end gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-            <BarChart2 className="h-6 w-6 md:h-8 md:w-8 text-trade-neon" /> 
+            <BarChart2 className="h-6 w-6 md:h-8 md:w-8 text-trade-neon" />
             Trade Analytics Dashboard
           </h1>
           <p className="text-gray-400 mt-1 text-sm md:text-base">
-            {isAdmin 
-              ? "Comprehensive overview of all student trading performance" 
+            {isAdmin
+              ? "Comprehensive overview of all student trading performance"
               : "Detailed analysis of your trading performance and patterns"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Search..." 
+            <input
+              type="text"
+              placeholder="Search..."
               className="bg-gray-800 border border-gray-600 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-trade-accent"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          <select 
+          <select
             className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-trade-accent"
             value={filterPair}
             onChange={e => setFilterPair(e.target.value)}
@@ -229,7 +229,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
             <option value="all">All Pairs</option>
             {pairData.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
           </select>
-          <select 
+          <select
             className="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-300 outline-none focus:border-trade-accent"
             value={filterStrategy}
             onChange={e => setFilterStrategy(e.target.value)}
@@ -274,7 +274,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
 
       {/* Key Metrics */}
       {tradeStats && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
           <div className="bg-trade-dark p-4 rounded-xl border border-gray-700">
             <div className="flex items-center gap-2 text-gray-400 mb-2 text-sm">
               <Activity className="h-4 w-4" /> Total Trades
@@ -319,28 +319,28 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
             <Activity className="h-5 w-5 text-trade-neon" /> P&L Over Time
           </h3>
-          <div className="h-64">
+          <div className="h-48 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={pnlOverTime}>
                 <defs>
                   <linearGradient id="colorPnl" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00ff94" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#00ff94" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#00ff94" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#00ff94" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="date" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <Tooltip 
-                  contentStyle={{backgroundColor:'#0f172a',border:'1px solid #334155',borderRadius:'8px'}} 
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
                   formatter={(value) => [`$${value}`, 'P&L']}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="pnl" 
-                  stroke="#00ff94" 
-                  fillOpacity={1} 
-                  fill="url(#colorPnl)" 
+                <Area
+                  type="monotone"
+                  dataKey="pnl"
+                  stroke="#00ff94"
+                  fillOpacity={1}
+                  fill="url(#colorPnl)"
                   name="P&L"
                 />
               </AreaChart>
@@ -353,7 +353,7 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
             <Award className="h-5 w-5 text-trade-neon" /> Win/Loss Distribution
           </h3>
-          <div className="h-64">
+          <div className="h-48 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -370,8 +370,8 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{backgroundColor:'#0f172a',border:'1px solid #334155',borderRadius:'8px'}} 
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
                   formatter={(value) => [`${value}%`, 'Percentage']}
                 />
                 <Legend />
@@ -385,14 +385,14 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
             <BarChart2 className="h-5 w-5 text-trade-neon" /> Trades by Pair
           </h3>
-          <div className="h-64">
+          <div className="h-48 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={pairData}>
                 <XAxis dataKey="name" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <Tooltip 
-                  contentStyle={{backgroundColor:'#0f172a',border:'1px solid #334155',borderRadius:'8px'}} 
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
                   formatter={(value) => [`${value}%`, 'Percentage']}
                 />
                 <Bar dataKey="value" name="Percentage">
@@ -410,14 +410,14 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
             <Zap className="h-5 w-5 text-trade-neon" /> Trades by Strategy
           </h3>
-          <div className="h-64">
+          <div className="h-48 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={strategyData}>
                 <XAxis dataKey="name" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <Tooltip 
-                  contentStyle={{backgroundColor:'#0f172a',border:'1px solid #334155',borderRadius:'8px'}} 
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
                   formatter={(value) => [`${value}%`, 'Percentage']}
                 />
                 <Bar dataKey="value" name="Percentage">
@@ -435,24 +435,24 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
             <Users className="h-5 w-5 text-trade-neon" /> Confidence Level Distribution
           </h3>
-          <div className="h-64">
+          <div className="h-48 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={confidenceData}>
                 <XAxis dataKey="level" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <Tooltip 
-                  contentStyle={{backgroundColor:'#0f172a',border:'1px solid #334155',borderRadius:'8px'}} 
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
                   formatter={(value) => [value, 'Trades']}
                   labelFormatter={(label) => `Confidence: ${label}/10`}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="#00ff94" 
-                  strokeWidth={2} 
-                  dot={{ stroke: '#00ff94', strokeWidth: 2, r: 4 }} 
-                  activeDot={{ r: 6, stroke: '#00ff94' }} 
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#00ff94"
+                  strokeWidth={2}
+                  dot={{ stroke: '#00ff94', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6, stroke: '#00ff94' }}
                   name="Trades"
                 />
               </LineChart>
@@ -465,14 +465,14 @@ const EnhancedTradeAnalytics: React.FC<EnhancedTradeAnalyticsProps> = ({ userId,
           <h3 className="font-bold text-lg mb-6 flex items-center gap-2">
             <Clock className="h-5 w-5 text-trade-neon" /> Trades by Time Frame
           </h3>
-          <div className="h-64">
+          <div className="h-48 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={timeFrameData}>
                 <XAxis dataKey="name" stroke="#64748b" />
                 <YAxis stroke="#64748b" />
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-                <Tooltip 
-                  contentStyle={{backgroundColor:'#0f172a',border:'1px solid #334155',borderRadius:'8px'}} 
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
                   formatter={(value) => [`${value}%`, 'Percentage']}
                 />
                 <Bar dataKey="value" name="Percentage">

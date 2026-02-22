@@ -1,77 +1,77 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAdminPortal } from '../AdminPortalContext';
-import { 
+import {
   DollarSign, BarChart2, TrendingUp, Users, FileText
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 
 const OverviewTab: React.FC = () => {
   const { students, businessMetrics, trades, fetchBusinessMetrics, studentPenaltiesData, fetchStudentPenaltiesData, penaltyTrendsData, fetchPenaltyTrendsData, setActiveTab } = useAdminPortal();
-  
+
   // Fetch business metrics, student penalties, and penalty trends when component mounts
   useEffect(() => {
     fetchBusinessMetrics();
     fetchStudentPenaltiesData();
     fetchPenaltyTrendsData();
   }, []);
-  
+
   // Calculate metrics based on real data
   const metrics = useMemo(() => {
     // Add safety check for students array
     const safeStudents = students && Array.isArray(students) ? students : [];
     const totalStudents = safeStudents.length;
-    
+
     // Calculate total P&L from trade data
     const totalPnL = trades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
-    
+
     // Calculate average win rate from trade data
     const totalTrades = trades.length;
     const wins = trades.filter(t => t.status === 'win').length;
     const avgWinRate = totalTrades > 0 ? Math.round((wins / totalTrades) * 100) : 0;
-    
+
     // Calculate total volume (number of trades)
     const totalVolume = totalTrades;
-    
+
     // Use business metrics for more accurate data if available
     const totalRevenue = businessMetrics?.totalRevenue || 0;
-    
+
     // Calculate more realistic percentage changes with bounds
     // Using smaller baseline values to avoid extreme percentages
     const baselineTotalStudents = Math.max(1, totalStudents - 5); // Slightly less than current
     const baselineTotalPnL = Math.max(1, totalPnL - 100); // Slightly less than current
     const baselineAvgWinRate = Math.max(1, avgWinRate - 5); // Slightly less than current
     const baselineTotalVolume = Math.max(1, totalVolume - 50); // Slightly less than current
-    
+
     // Calculate percentage changes with bounds to prevent extreme values
     const studentChange = totalStudents > 0 ? Math.min(100, Math.max(-100, Math.round(((totalStudents - baselineTotalStudents) / baselineTotalStudents) * 100))) : 0;
     const pnlChange = totalRevenue > 0 ? Math.min(100, Math.max(-100, Math.round(((totalPnL - baselineTotalPnL) / baselineTotalPnL) * 100))) : 0;
     const winRateChange = avgWinRate > 0 ? Math.min(100, Math.max(-100, avgWinRate - baselineAvgWinRate)) : 0;
     const volumeChange = totalVolume > 0 ? Math.min(100, Math.max(-100, Math.round(((totalVolume - baselineTotalVolume) / baselineTotalVolume) * 100))) : 0;
-    
+
     return [
-      { 
-        title: 'Total Students', 
-        value: totalStudents.toLocaleString(), 
-        change: `${studentChange >= 0 ? '+' : ''}${studentChange}%`, 
-        icon: Users 
+      {
+        title: 'Total Students',
+        value: totalStudents.toLocaleString(),
+        change: `${studentChange >= 0 ? '+' : ''}${studentChange}%`,
+        icon: Users
       },
-      { 
-        title: 'Total P&L', 
-        value: `$${totalPnL.toLocaleString()}`, 
-        change: `${pnlChange >= 0 ? '+' : ''}${pnlChange}%`, 
-        icon: DollarSign 
+      {
+        title: 'Total P&L',
+        value: `$${totalPnL.toLocaleString()}`,
+        change: `${pnlChange >= 0 ? '+' : ''}${pnlChange}%`,
+        icon: DollarSign
       },
-      { 
-        title: 'Avg Win Rate', 
-        value: `${avgWinRate}%`, 
-        change: `${winRateChange >= 0 ? '+' : ''}${winRateChange}%`, 
-        icon: BarChart2 
+      {
+        title: 'Avg Win Rate',
+        value: `${avgWinRate}%`,
+        change: `${winRateChange >= 0 ? '+' : ''}${winRateChange}%`,
+        icon: BarChart2
       },
-      { 
-        title: 'Total Volume', 
-        value: totalVolume.toLocaleString(), 
-        change: `${volumeChange >= 0 ? '+' : ''}${volumeChange}%`, 
-        icon: TrendingUp 
+      {
+        title: 'Total Volume',
+        value: totalVolume.toLocaleString(),
+        change: `${volumeChange >= 0 ? '+' : ''}${volumeChange}%`,
+        icon: TrendingUp
       },
     ];
   }, [students, businessMetrics, trades]);
@@ -80,10 +80,10 @@ const OverviewTab: React.FC = () => {
   const recentActivities = useMemo(() => {
     // Add safety check for students array
     const safeStudents = students && Array.isArray(students) ? students : [];
-    
+
     // Create activities from student data
     const activities = [];
-    
+
     // Add recent student joins with better date handling
     safeStudents
       .filter(student => student && student.joinedDate)
@@ -93,10 +93,10 @@ const OverviewTab: React.FC = () => {
         const joinDate = new Date(student.joinedDate);
         const now = new Date();
         const hoursAgo = Math.floor((now.getTime() - joinDate.getTime()) / (1000 * 60 * 60));
-        const timeText = hoursAgo < 24 
-          ? `${hoursAgo} hours ago` 
+        const timeText = hoursAgo < 24
+          ? `${hoursAgo} hours ago`
           : `${Math.floor(hoursAgo / 24)} days ago`;
-          
+
         activities.push({
           id: `join-${student.id || index}`,
           user: student.name || 'Unknown User',
@@ -104,7 +104,7 @@ const OverviewTab: React.FC = () => {
           time: timeText
         });
       });
-    
+
     return activities;
   }, [students]);
 
@@ -112,7 +112,7 @@ const OverviewTab: React.FC = () => {
   const pnlByStudent = useMemo(() => {
     // Group trades by student
     const tradesByStudent: Record<string, any[]> = {};
-    
+
     trades.forEach(trade => {
       const studentId = trade.studentId;
       if (!tradesByStudent[studentId]) {
@@ -120,17 +120,17 @@ const OverviewTab: React.FC = () => {
       }
       tradesByStudent[studentId].push(trade);
     });
-    
+
     // Calculate P&L for each student
     const studentPnLData = Object.entries(tradesByStudent).map(([studentId, studentTrades]) => {
       const totalPnL = studentTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
       const winTrades = studentTrades.filter(trade => trade.status === 'win').length;
       const lossTrades = studentTrades.filter(trade => trade.status === 'loss').length;
       const totalTrades = studentTrades.length;
-      
+
       // Find student info
       const student = students.find(s => s.id === studentId);
-      
+
       return {
         id: studentId,
         name: student?.name || 'Unknown Student',
@@ -142,7 +142,7 @@ const OverviewTab: React.FC = () => {
         winRate: totalTrades > 0 ? Math.round((winTrades / totalTrades) * 100) : 0
       };
     });
-    
+
     // Sort by absolute P&L value (highest absolute value first)
     return studentPnLData.sort((a, b) => Math.abs(b.totalPnL) - Math.abs(a.totalPnL));
   }, [trades, students]);
@@ -189,7 +189,7 @@ const OverviewTab: React.FC = () => {
           );
         })}
         {/* Journal Trade Button */}
-        <div 
+        <div
           className="bg-gradient-to-br from-trade-neon to-blue-500 rounded-2xl border border-blue-500/50 p-6 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer flex flex-col justify-center"
           onClick={() => setActiveTab('journal')}
         >
@@ -207,47 +207,48 @@ const OverviewTab: React.FC = () => {
       {/* P&L Breakdown Chart */}
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-xl">
         <h3 className="text-xl font-bold mb-6 text-white">Student P&L Performance</h3>
-        <div className="h-80 mb-6">
+        <div className="h-64 sm:h-80 mb-6 font-sans">
           {pnlByStudent.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={pnlByStudent.slice(0, 10)}
                 layout="vertical"
-                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                margin={{ top: 5, right: 10, left: window.innerWidth < 768 ? -20 : 100, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#475569" opacity={0.5} />
-                <XAxis 
-                  type="number" 
-                  stroke="#94a3b8" 
+                <XAxis
+                  type="number"
+                  stroke="#94a3b8"
                   fontSize={12}
                   tick={{ fill: '#94a3b8' }}
                   tickFormatter={(value) => `$${value}`}
                 />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  stroke="#94a3b8" 
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  stroke="#94a3b8"
                   fontSize={12}
                   tick={{ fill: '#94a3b8' }}
-                  width={90}
+                  width={window.innerWidth < 768 ? 0 : 90}
+                  hide={window.innerWidth < 768}
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1f2937', 
-                    border: '1px solid #475569', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1f2937',
+                    border: '1px solid #475569',
                     borderRadius: '8px',
                     color: '#fff'
-                  }} 
+                  }}
                   formatter={(value, name) => [
-                    `$${parseFloat(value.toString()).toFixed(2)}`, 
+                    `$${parseFloat(value.toString()).toFixed(2)}`,
                     'Total P&L'
                   ]}
                   labelStyle={{ color: '#fff', fontWeight: 'bold' }}
                 />
-                <Bar 
-                  dataKey="totalPnL" 
-                  name="Total P&L" 
-                  fill="#00ff94" 
+                <Bar
+                  dataKey="totalPnL"
+                  name="Total P&L"
+                  fill="#00ff94"
                   radius={[0, 4, 4, 0]}
                 />
               </BarChart>
@@ -258,7 +259,7 @@ const OverviewTab: React.FC = () => {
             </div>
           )}
         </div>
-        
+
         {/* Student P&L Details */}
         <div className="space-y-4">
           {pnlByStudent.length > 0 ? (
