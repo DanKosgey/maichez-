@@ -205,6 +205,39 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, [viewState]);
 
+  // Real-time profile sync: re-fetch user profile whenever it changes in DB
+  // This ensures bot access, tier changes, etc. reflect immediately without re-login
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`profile-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
+        (payload) => {
+          const updated = payload.new as any;
+          console.log('Profile updated in real-time:', updated);
+          setUser((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              name: updated.full_name || prev.name,
+              role: updated.role || prev.role,
+              subscriptionTier: updated.subscription_tier || prev.subscriptionTier,
+              botAccess: updated.bot_access ?? prev.botAccess,
+              botPurchaseStatus: updated.bot_purchase_status ?? prev.botPurchaseStatus,
+            };
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   const fetchProfile = async (userId: string, email: string) => {
     try {
       console.log('Fetching profile for user:', userId);
