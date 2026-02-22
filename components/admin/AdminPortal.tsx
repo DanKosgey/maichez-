@@ -94,7 +94,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ courses, initialTab = 'overvi
     { id: 'journal', label: 'My Trades', icon: DollarSign },
     { id: 'admin-analytics', label: 'Admin Analytics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: CreditCard },
-    { id: 'bot-inquiries', label: 'Bot Inquiries', icon: Bot },
+    { id: 'bot-inquiries', label: 'Bot Inquiries', icon: Zap },
   ];
 
   return (

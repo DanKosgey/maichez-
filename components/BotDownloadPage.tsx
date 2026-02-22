@@ -12,7 +12,7 @@ import {
     FileCode,
     Lock,
     Clock,
-    AlertCircle,
+    ArrowRight,
     FileText,
     Settings
 } from 'lucide-react';
@@ -51,11 +51,49 @@ const BotDownloadPage: React.FC<BotDownloadPageProps> = ({ user }) => {
     };
 
     if (!user.botAccess && !isPending) {
-        // ... (existing restricted view)
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+                <div className="relative mb-8">
+                    <div className="absolute inset-0 bg-brand-primary/20 blur-3xl rounded-full" />
+                    <div className="relative bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl">
+                        <Lock className="h-20 w-20 text-slate-700" />
+                        <div className="absolute -bottom-2 -right-2 h-10 w-10 bg-brand-primary rounded-full flex items-center justify-center border-4 border-slate-900 shadow-lg">
+                            <Zap className="h-5 w-5 text-slate-900" />
+                        </div>
+                    </div>
+                </div>
+                <h2 className="text-4xl font-black text-white mb-4 tracking-tight">Access Restricted</h2>
+                <p className="text-slate-400 max-w-md mx-auto mb-10 text-lg leading-relaxed">
+                    The Zeta Expert bot is an exclusive institutional algorithm. Purchase a license to unlock the download and installation guide.
+                </p>
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('navigateToView', { detail: 'bot' }))}
+                    className="px-10 py-5 bg-brand-primary text-slate-900 font-black text-lg rounded-2xl hover:bg-green-400 transition shadow-xl shadow-brand-primary/20 active:scale-95 flex items-center gap-3"
+                >
+                    Visit Bot Store <ArrowRight className="h-6 w-6" />
+                </button>
+            </div>
+        );
     }
 
     if (isPending) {
-        // ... (existing pending view)
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+                <div className="relative mb-8">
+                    <div className="absolute inset-0 bg-amber-500/10 blur-3xl rounded-full" />
+                    <div className="relative bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-2xl">
+                        <Clock className="h-20 w-20 text-amber-500 animate-pulse" />
+                    </div>
+                </div>
+                <h2 className="text-4xl font-black text-white mb-4 tracking-tight">Verification in Progress</h2>
+                <p className="text-slate-400 max-w-md mx-auto mb-6 text-lg leading-relaxed">
+                    Our team is currently validating your purchase request. This process usually takes between 1-4 hours.
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-500 text-xs font-black uppercase tracking-widest">
+                    Status: Pending Admin Approval
+                </div>
+            </div>
+        );
     }
 
     const mainBotAsset = assets.find(a => a.type === 'mql5') || assets[0];
@@ -160,11 +198,46 @@ const BotDownloadPage: React.FC<BotDownloadPageProps> = ({ user }) => {
 
                 {/* Quick Info / Config Card */}
                 <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8">
-                    {/* ... (Existing Recommended Config List) */}
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                        <Settings className="h-6 w-6 text-brand-primary" />
+                        Recommended Config
+                    </h3>
+                    <ul className="space-y-4">
+                        {[
+                            { label: "Timeframe", value: "M5 / M15" },
+                            { label: "Risk Percent", value: "0.5% - 1.0%" },
+                            { label: "Broker Type", value: "ECN / Raw Spread" },
+                            { label: "Equity Filter", value: "Enabled" }
+                        ].map((item, i) => (
+                            <li key={i} className="flex items-center justify-between text-sm py-2 border-b border-slate-800/50 last:border-0">
+                                <span className="text-slate-500">{item.label}</span>
+                                <span className="text-white font-bold">{item.value}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
 
-            {/* Installation Guide ... (Existing Guide Content) */}
+            {/* Installation Guide */}
+            <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 md:p-12">
+                <h2 className="text-2xl font-black text-white mb-8 flex items-center gap-3">
+                    <Activity className="h-7 w-7 text-brand-primary" />
+                    Installation Roadmap
+                </h2>
+                <div className="grid md:grid-cols-3 gap-8 relative">
+                    {[
+                        { step: "01", title: "Move to Experts", desc: "Copy the .mq5 file into your MT5 Experts folder." },
+                        { step: "02", title: "Allow Trading", desc: "Enable 'Allow Algo Trading' in MT5 settings." },
+                        { step: "03", title: "Load Presets", desc: "Drag bot to chart and load the provided .set files." }
+                    ].map((step, i) => (
+                        <div key={i} className="relative space-y-4">
+                            <div className="text-5xl font-black text-brand-primary/10 absolute -top-4 -left-2 select-none">{step.step}</div>
+                            <h4 className="text-lg font-bold text-white relative z-10">{step.title}</h4>
+                            <p className="text-slate-400 text-sm leading-relaxed">{step.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

@@ -499,6 +499,8 @@ const App: React.FC = () => {
       if (user.role === 'admin') {
         switch (portalView) {
           case 'overview':
+          case 'admin-dashboard':
+          case 'dashboard': // Some routes might use dashboard for admin
           case 'directory':
           case 'student-management':
           case 'trades':
@@ -510,7 +512,11 @@ const App: React.FC = () => {
           case 'bot':
             return (
               <AdminPortalProvider>
-                <AdminPortal courses={courses} user={user} initialTab={portalView} />
+                <AdminPortal
+                  courses={courses}
+                  user={user}
+                  initialTab={portalView === 'admin-dashboard' || portalView === 'dashboard' ? 'overview' : portalView}
+                />
               </AdminPortalProvider>
             );
           case 'rules':
