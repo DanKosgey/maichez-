@@ -3,7 +3,7 @@ import { useAdminPortal } from '../AdminPortalContext';
 import { fetchBotAssets, uploadBotAsset, deleteBotAsset } from '../../../services/adminService';
 import { BotAsset, StudentProfile } from '../../../types';
 import {
-  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Cpu as Bot
+  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Cpu as Bot, Lock, Clock, CheckCircle2
 } from 'lucide-react';
 
 const StudentManagementTab: React.FC = () => {
@@ -320,9 +320,15 @@ const StudentManagementTab: React.FC = () => {
                       <td className="py-4 text-center">
                         <button
                           onClick={() => setEditedStudent({ ...editedStudent, botAccess: !editedStudent?.botAccess })}
-                          className={`p-2 rounded-lg border transition ${editedStudent?.botAccess ? 'bg-trade-neon/20 border-trade-neon/50 text-trade-neon' : 'bg-gray-800 border-gray-700 text-gray-500'}`}
+                          className={`flex items-center gap-2 mx-auto px-3 py-1.5 rounded-lg border transition-all ${editedStudent?.botAccess
+                              ? 'bg-trade-neon/20 border-trade-neon/50 text-trade-neon'
+                              : 'bg-gray-800 border-gray-700 text-gray-500'
+                            }`}
                         >
-                          <Bot className="h-4 w-4" />
+                          {editedStudent?.botAccess ? <CheckCircle2 className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                          <span className="text-[10px] font-black uppercase tracking-wider">
+                            {editedStudent?.botAccess ? 'Granted' : 'Locked'}
+                          </span>
                         </button>
                       </td>
                       <td className="py-4">
@@ -351,7 +357,22 @@ const StudentManagementTab: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-4 text-center">
-                        {student.botAccess ? <Bot className="h-4 w-4 text-trade-neon mx-auto" /> : <Bot className="h-4 w-4 text-gray-700 mx-auto" />}
+                        {student.botPurchaseStatus === 'pending' ? (
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 animate-pulse">
+                            <Clock className="h-3 w-3" />
+                            <span className="text-[10px] font-black uppercase tracking-tighter">Pending</span>
+                          </div>
+                        ) : student.botAccess ? (
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-trade-neon/10 border border-trade-neon/20 text-trade-neon">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span className="text-[10px] font-black uppercase tracking-tighter">Granted</span>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-gray-500">
+                            <Lock className="h-3 w-3" />
+                            <span className="text-[10px] font-black uppercase tracking-tighter">Locked</span>
+                          </div>
+                        )}
                       </td>
                       <td className="py-4">
                         <span className={`text-xs font-bold uppercase px-3 py-1 rounded ${getStatusColor(student.status)}`}>
