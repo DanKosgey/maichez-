@@ -3,7 +3,7 @@ import { useAdminPortal } from '../AdminPortalContext';
 import { fetchBotAssets, uploadBotAsset, deleteBotAsset } from '../../../services/adminService';
 import { BotAsset, StudentProfile } from '../../../types';
 import {
-  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Cpu as Bot, Lock, Clock, CheckCircle2
+  Users, Search, Filter, Edit2, Trash2, Save, X, AlertTriangle, CheckCircle, Cpu as Bot, Lock, Clock, CheckCircle2, Sparkles
 } from 'lucide-react';
 
 const StudentManagementTab: React.FC = () => {
@@ -149,8 +149,9 @@ const StudentManagementTab: React.FC = () => {
       setEditedStudent(null);
       setSuccess('Student profile updated successfully!');
 
-      // Refresh the data
-      await refreshData();
+      // We do NOT refreshData() here because updateStudentProfile already 
+      // performs an optimistic update, and a refresh might revert the UI
+      // if the backend RPC hasn't been updated yet.
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
@@ -196,6 +197,29 @@ const StudentManagementTab: React.FC = () => {
       } else {
         setError('Failed to delete student profile. Please try again.');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickGrant = async (student: StudentProfile) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const updates = {
+        botAccess: true,
+        botPurchaseStatus: 'completed' as const,
+        // If they are free or pending, bump them to Foundation at least
+        tier: (student.tier === 'free' || student.tier.includes('-pending')) ? 'foundation' : student.tier
+      };
+
+      await updateStudentProfile(student.id, updates);
+      setSuccess(`Quick Granted bot access to ${student.name}!`);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Quick Grant error:', err);
+      setError('Failed to perform Quick Grant.');
     } finally {
       setLoading(false);
     }
@@ -321,8 +345,8 @@ const StudentManagementTab: React.FC = () => {
                         <button
                           onClick={() => setEditedStudent({ ...editedStudent, botAccess: !editedStudent?.botAccess })}
                           className={`flex items-center gap-2 mx-auto px-3 py-1.5 rounded-lg border transition-all ${editedStudent?.botAccess
-                              ? 'bg-trade-neon/20 border-trade-neon/50 text-trade-neon'
-                              : 'bg-gray-800 border-gray-700 text-gray-500'
+                            ? 'bg-trade-neon/20 border-trade-neon/50 text-trade-neon'
+                            : 'bg-gray-800 border-gray-700 text-gray-500'
                             }`}
                         >
                           {editedStudent?.botAccess ? <CheckCircle2 className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
@@ -381,6 +405,15 @@ const StudentManagementTab: React.FC = () => {
                       </td>
                       <td className="py-4">
                         <div className="flex gap-2">
+                          {(!student.botAccess || student.botPurchaseStatus === 'pending') && (
+                            <button
+                              onClick={() => handleQuickGrant(student)}
+                              title="Quick Grant Bot Access"
+                              className="p-2 bg-trade-neon/20 hover:bg-trade-neon/30 text-trade-neon rounded-lg transition-colors border border-trade-neon/20"
+                            >
+                              <Sparkles className="h-4 w-4" />
+                            </button>
+                          )}
                           <button onClick={() => handleEditClick(student)} className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"><Edit2 className="h-4 w-4" /></button>
                           <button onClick={() => handleDeleteStudent(student.id, student.name)} className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg"><Trash2 className="h-4 w-4" /></button>
                         </div>
