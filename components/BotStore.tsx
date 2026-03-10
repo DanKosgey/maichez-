@@ -21,9 +21,10 @@ import { supabase } from '../supabase/client';
 interface BotStoreProps {
     user: User;
     onUpdateUser: (updatedUser: User) => void;
+    onNavigateToPurchase?: () => void;
 }
 
-const BotStore: React.FC<BotStoreProps> = ({ user, onUpdateUser }) => {
+const BotStore: React.FC<BotStoreProps> = ({ user, onUpdateUser, onNavigateToPurchase }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,17 +33,23 @@ const BotStore: React.FC<BotStoreProps> = ({ user, onUpdateUser }) => {
             setLoading(true);
             setError(null);
 
-            const { error: updateError } = await supabase
-                .from('profiles')
-                .update({ bot_purchase_status: 'pending' })
-                .eq('id', user.id);
+            // Navigate to the purchase page
+            if (onNavigateToPurchase) {
+                onNavigateToPurchase();
+            } else {
+                // Fallback: update database status if no navigation handler provided
+                const { error: updateError } = await supabase
+                    .from('profiles')
+                    .update({ bot_purchase_status: 'pending' })
+                    .eq('id', user.id);
 
-            if (updateError) throw updateError;
+                if (updateError) throw updateError;
 
-            onUpdateUser({
-                ...user,
-                botPurchaseStatus: 'pending'
-            });
+                onUpdateUser({
+                    ...user,
+                    botPurchaseStatus: 'pending'
+                });
+            }
         } catch (err: any) {
             console.error('Error initiating purchase:', err);
             setError(err.message || 'Failed to initiate purchase. Please try again.');

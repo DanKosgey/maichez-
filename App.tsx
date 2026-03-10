@@ -20,6 +20,7 @@ import UnderReviewPage from './components/UnderReviewPage';
 import SignupPage from './components/SignupPage';
 import BotDownloadPage from './components/BotDownloadPage';
 import BotStore from './components/BotStore';
+import TradingBotPurchasePage from './telegram/TradingBotPurchasePage';
 
 // --- MOCK DATA ---
 
@@ -835,7 +836,20 @@ const App: React.FC = () => {
             return <BotDownloadPage user={user} />;
           }
 
-          return <BotStore user={user} onUpdateUser={setUser} />;
+          return <BotStore 
+            user={user} 
+            onUpdateUser={setUser}
+            onNavigateToPurchase={() => setPortalView('bot-purchase')}
+          />;
+        case 'bot-purchase':
+          // Trading Bot Purchase Page with Mastercard Payment
+          return (
+            <TradingBotPurchasePage
+              user={user}
+              onUpdateUser={setUser}
+              onBack={() => setPortalView('bot')}
+            />
+          );
         case 'todos':
           // Access Control: Only foundation, professional, and elite tiers can access todos
           // Pending users cannot access
