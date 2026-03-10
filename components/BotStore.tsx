@@ -225,14 +225,34 @@ const BotStore: React.FC<BotStoreProps> = ({ user, onUpdateUser, onNavigateToPur
                                     Account Authorized
                                 </button>
                             ) : isPending ? (
-                                <div className="space-y-6">
-                                    <div className="w-full py-6 bg-amber-500/10 text-amber-500 font-black rounded-2xl flex items-center justify-center gap-3 border border-amber-500/20 backdrop-blur-sm uppercase tracking-widest animate-pulse">
+                                <div className="space-y-4">
+                                    <div className="w-full py-6 bg-amber-500/10 text-amber-500 font-black rounded-2xl flex items-center justify-center gap-3 border border-amber-500/20 backdrop-blur-sm uppercase tracking-widest">
                                         <Clock className="h-6 w-6" />
-                                        Reviewing Payment
+                                        Ready to Purchase
                                     </div>
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => onNavigateToPurchase?.()}
+                                        disabled={loading}
+                                        className="w-full py-6 bg-brand-primary text-slate-900 font-black rounded-2xl shadow-[0_10px_30px_rgba(0,255,148,0.2)] hover:shadow-[0_15px_40px_rgba(0,255,148,0.4)] transition-all flex items-center justify-center gap-3 group/btn relative overflow-hidden"
+                                    >
+                                        <div className="absolute inset-x-0 top-0 h-px bg-white/20" />
+                                        {loading ? (
+                                            <div className="flex items-center gap-3">
+                                                <Activity className="h-6 w-6 animate-spin" />
+                                                <span>Processing...</span>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <span className="text-lg">💳 Make Purchase</span>
+                                                <ArrowRight className="h-6 w-6 group-hover/btn:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </motion.button>
                                     <p className="text-center text-[10px] text-slate-500 leading-relaxed font-bold uppercase tracking-wider bg-white/5 py-3 rounded-xl border border-white/5">
-                                        Validation Engine Engaged. <br />
-                                        Estimated sync time: 1-4 Hours.
+                                        Click to enter your payment details <br />
+                                        and complete your purchase securely.
                                     </p>
                                 </div>
                             ) : (
