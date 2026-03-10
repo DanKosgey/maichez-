@@ -235,7 +235,7 @@ const BotStore: React.FC<BotStoreProps> = ({ user, onUpdateUser, onNavigateToPur
                                         whileTap={{ scale: 0.98 }}
                                         onClick={() => onNavigateToPurchase?.()}
                                         disabled={loading}
-                                        className="w-full py-6 bg-brand-primary text-slate-900 font-black rounded-2xl shadow-[0_10px_30px_rgba(0,255,148,0.2)] hover:shadow-[0_15px_40px_rgba(0,255,148,0.4)] transition-all flex items-center justify-center gap-3 group/btn relative overflow-hidden"
+                                        className="w-full py-6 bg-brand-primary text-white font-black rounded-2xl shadow-[0_10px_30px_rgba(0,255,148,0.2)] hover:shadow-[0_15px_40px_rgba(0,255,148,0.4)] transition-all flex items-center justify-center gap-3 group/btn relative overflow-hidden"
                                     >
                                         <div className="absolute inset-x-0 top-0 h-px bg-white/20" />
                                         {loading ? (
@@ -271,8 +271,8 @@ const BotStore: React.FC<BotStoreProps> = ({ user, onUpdateUser, onNavigateToPur
                                         </div>
                                     ) : (
                                         <>
-                                            <span className="text-lg">ACQUIRE ACCESS</span>
-                                            <ArrowRight className="h-6 w-6 group-hover/btn:translate-x-1 transition-transform" />
+                                            <span className="text-2xl font-black text-white drop-shadow-lg">💳 Make Purchase</span>
+                                            <ArrowRight className="h-6 w-6 group-hover/btn:translate-x-1 transition-transform text-white" />
                                         </>
                                     )}
                                 </motion.button>
